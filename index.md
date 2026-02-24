@@ -4,5 +4,5 @@
   - [First Day Demo](01-first-demo)
 
 ## assignments
-  - Assignmenst will apear here!!
+  - [Interactive Scene](Mega-Bowl)
 
