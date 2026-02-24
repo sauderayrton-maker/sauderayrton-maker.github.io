@@ -1,7 +1,8 @@
 # My CS30 Stuff
 
 ## Demos
-  - Ill add demos here
+  - [First Day Demo](01-first-demo)
 
 ## assignments
   - Assignmenst will apear here!!
+
