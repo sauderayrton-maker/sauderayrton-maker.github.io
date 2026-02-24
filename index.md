@@ -6,3 +6,5 @@
 ## assignments
   - [Interactive Scene](Mega-Bowl)
 
+## ai slop
+  - [amazing Browser](liquid-Browsing)

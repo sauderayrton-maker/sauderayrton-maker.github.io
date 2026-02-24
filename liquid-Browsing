@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Glass OS Concept</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #030303;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: white;
+            perspective: 1000px;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .os-interface {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+        }
+
+        /* Hyprland-style Bouncy Glass UI */
+        .glass-panel {
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: transform 0.15s ease-out; /* Smooth follow */
+        }
+
+        /* Top Navigation & Tabs */
+        .browser-chrome {
+            padding: 0.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 4px;
+            padding: 0 10px;
+            overflow-x: auto;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px 12px 0 0;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: none;
+            transition: all 0.2s ease;
+            min-width: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-top: 2px solid rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+        }
+
+        .close-btn {
+            opacity: 0.4;
+            transition: opacity 0.2s;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+            background: rgba(255, 0, 0, 0.5);
+        }
+
+        .address-bar {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 99px;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: border-color 0.2s, background 0.2s;
+        }
+        
+        .address-bar:focus-within {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .address-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 0.85rem;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        /* Layout */
+        .viewport {
+            flex-grow: 1;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            grid-template-rows: 1fr 1fr;
+            gap: 1.5rem;
+            height: calc(100vh - 180px); /* Leave room for header/footer */
+            transition: grid-template-columns 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .main-window {
+            grid-row: span 2;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sidebar-widget {
+            border-radius: 24px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Taskbar Icons */
+        .taskbar {
+            pointer-events: auto;
+            align-self: center;
+            margin-bottom: 1.5rem;
+            padding: 10px 20px;
+            border-radius: 24px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .app-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .app-icon:hover {
+            transform: scale(1.3) translateY(-15px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        .blob {
+            position: absolute;
+            width: 40vw;
+            height: 40vw;
+            filter: blur(120px);
+            border-radius: 50%;
+            z-index: 0;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        #browser-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white; /* Most sites expect white bg */
+            border-radius: 0 0 24px 24px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="blob" id="blob1" style="top: -10%; left: 10%; background: #6366f1;"></div>
+    <div class="blob" id="blob2" style="bottom: -10%; right: 10%; background: #ec4899;"></div>
+
+    <div id="canvas-container">
+        <canvas id="glCanvas"></canvas>
+    </div>
+
+    <div class="os-interface">
+        <!-- Browser Header -->
+        <header class="glass-panel browser-chrome interactive-element">
+            <div class="tabs-container" id="tab-bar">
+                <!-- Tabs injected by JS -->
+            </div>
+            <div class="address-bar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <input type="text" id="url-input" class="address-input" value="liquid://home" placeholder="Enter URL or search term... (Try wikipedia.org)" autocomplete="off">
+            </div>
+        </header>
+
+        <!-- Main Desktop Area -->
+        <main class="viewport">
+            <div class="glass-panel main-window interactive-element" id="main-window-container">
+                <!-- Home Screen Content -->
+                <div id="home-screen" class="p-6 h-full flex flex-col">
+                    <h2 class="text-3xl font-bold mb-4 tracking-tight">System Refraction</h2>
+                    <div class="flex-grow rounded-xl bg-white/5 border border-white/5 p-8 flex flex-col items-center justify-center text-center">
+                        <div class="text-6xl font-black mb-2 opacity-20">GLASS.OS</div>
+                        <p class="text-sm text-indigo-300 uppercase tracking-widest font-bold mb-8">Concept v3.0 // Fully Functional</p>
+                        
+                        <div class="grid grid-cols-2 gap-4 max-w-md w-full">
+                            <button onclick="loadUrl('https://en.wikipedia.org')" class="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors">
+                                <div class="font-bold">Wikipedia</div>
+                                <div class="text-xs opacity-50">Free Encyclopedia</div>
+                            </button>
+                            <button onclick="loadUrl('https://example.com')" class="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors">
+                                <div class="font-bold">Example.com</div>
+                                <div class="text-xs opacity-50">Test Domain</div>
+                            </button>
+                        </div>
+                        <p class="text-xs opacity-40 mt-6 max-w-sm">Note: Many modern websites block external framing for security (X-Frame-Options). Use supported sites to test the browser.</p>
+                    </div>
+                </div>
+
+                <!-- Web Content Iframe -->
+                <iframe id="browser-frame" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+            </div>
+
+            <!-- Text Editor App (Tiled) -->
+            <div id="text-editor" class="glass-panel interactive-element flex-col hidden" style="grid-row: span 2; overflow: hidden;">
+                <div class="flex justify-between items-center p-3 border-b border-white/10 bg-black/20">
+                    <div class="text-xs font-bold tracking-widest text-indigo-300 flex items-center gap-2">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                        LIQUID_EDIT
+                    </div>
+                    <button onclick="toggleEditor()" class="text-white/50 hover:text-white px-2 rounded hover:bg-white/10 transition-colors text-lg leading-none">&times;</button>
+                </div>
+                <textarea class="flex-grow w-full bg-transparent text-white p-4 outline-none resize-none font-mono text-sm leading-relaxed" spellcheck="false" placeholder="// Write your code here...&#10;&#10;function bounce() {&#10;  console.log('Hyprland style tiling!');&#10;}"></textarea>
+            </div>
+
+            <div class="glass-panel sidebar-widget interactive-element">
+                <h3 class="font-bold text-sm uppercase tracking-widest mb-4 opacity-50">Viscosity</h3>
+                <input type="range" class="w-full accent-white bg-white/10 rounded-lg appearance-none h-1 mb-6" id="viscRange" value="50">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="updateColor('#6366f1')" class="h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/50 text-[10px] font-bold hover:bg-indigo-500/40 transition-colors">INDIGO</button>
+                    <button onclick="updateColor('#ec4899')" class="h-8 rounded-lg bg-pink-500/20 border border-pink-500/50 text-[10px] font-bold hover:bg-pink-500/40 transition-colors">PHANTOM</button>
+                </div>
+            </div>
+
+            <div class="glass-panel sidebar-widget interactive-element">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <div class="text-xs opacity-50 mb-1">REAL FPS</div>
+                        <div class="text-2xl font-mono" id="fps-counter">0.0</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs opacity-50 mb-1">RAM ALLOC</div>
+                        <div class="text-2xl font-mono" id="ram-counter">2.41GB</div>
+                    </div>
+                </div>
+                <div class="w-full h-1 bg-white/10 rounded mt-4 overflow-hidden">
+                    <div class="h-full bg-green-400 rounded transition-all duration-1000" id="ram-bar" style="width: 45%"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="glass-panel taskbar interactive-element">
+            <div class="app-icon" onclick="addTab()" title="New Browser Tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
+            <div class="app-icon" onclick="loadUrl('liquid://home')" title="Home"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></div>
+            <div class="app-icon" onclick="toggleEditor()" title="Liquid Edit (Code)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg></div>
+        </footer>
+    </div>
+
+    <script>
+        /* --- BROWSER / OS LOGIC --- */
+        let tabs = [{ id: 1, title: 'Liquid Home', url: 'liquid://home' }];
+        let activeTabId = 1;
+        let tabCounter = 1;
+
+        const urlInput = document.getElementById('url-input');
+        const frame = document.getElementById('browser-frame');
+        const homeScreen = document.getElementById('home-screen');
+        const tabBar = document.getElementById('tab-bar');
+
+        function renderTabs() {
+            tabBar.innerHTML = '';
+            tabs.forEach(tab => {
+                const tabEl = document.createElement('div');
+                tabEl.className = `tab ${tab.id === activeTabId ? 'active' : ''}`;
+                tabEl.onclick = () => switchTab(tab.id);
+                
+                const titleSpan = document.createElement('span');
+                titleSpan.innerText = tab.title;
+                titleSpan.className = "truncate overflow-hidden w-full text-left";
+                
+                const closeBtn = document.createElement('span');
+                closeBtn.innerText = '×';
+                closeBtn.className = 'close-btn';
+                closeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    closeTab(tab.id);
+                };
+
+                tabEl.appendChild(titleSpan);
+                tabEl.appendChild(closeBtn);
+                tabBar.appendChild(tabEl);
+            });
+
+            // Add the "+" button
+            const addBtn = document.createElement('button');
+            addBtn.className = 'px-3 opacity-50 hover:opacity-100 text-lg font-bold ml-1';
+            addBtn.innerText = '+';
+            addBtn.onclick = addTab;
+            tabBar.appendChild(addBtn);
+        }
+
+        function switchTab(id) {
+            activeTabId = id;
+            const tab = tabs.find(t => t.id === id);
+            if (tab) {
+                renderTabs();
+                loadUrl(tab.url, false); // false = don't update tab object again
+            }
+        }
+
+        function closeTab(id) {
+            if (tabs.length === 1) return; // Don't close last tab
+            const index = tabs.findIndex(t => t.id === id);
+            tabs = tabs.filter(t => t.id !== id);
+            
+            if (activeTabId === id) {
+                // Switch to previous tab, or next if it was the first
+                const nextTab = tabs[index - 1] || tabs[0];
+                switchTab(nextTab.id);
+            } else {
+                renderTabs();
+            }
+        }
+
+        function addTab() {
+            tabCounter++;
+            const newTab = { id: tabCounter, title: 'New Tab', url: 'liquid://home' };
+            tabs.push(newTab);
+            switchTab(newTab.id);
+        }
+
+        function formatUrl(rawUrl) {
+            if (rawUrl === 'liquid://home') return rawUrl;
+            if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+                // Check if it's a domain format, otherwise maybe search
+                if (rawUrl.includes('.') && !rawUrl.includes(' ')) {
+                    return 'https://' + rawUrl;
+                } else {
+                    return 'https://www.bing.com/search?q=' + encodeURIComponent(rawUrl);
+                }
+            }
+            return rawUrl;
+        }
+
+        function loadUrl(rawUrl, updateActiveTabObj = true) {
+            const finalUrl = formatUrl(rawUrl);
+            urlInput.value = finalUrl;
+
+            // Update iframe or home screen
+            if (finalUrl === 'liquid://home') {
+                frame.style.display = 'none';
+                homeScreen.style.display = 'flex';
+            } else {
+                homeScreen.style.display = 'none';
+                frame.style.display = 'block';
+                // Only reload iframe if URL actually changed to prevent flashing
+                if (frame.src !== finalUrl) {
+                    frame.src = finalUrl;
+                }
+            }
+
+            // Update Tab Data
+            if (updateActiveTabObj) {
+                const tab = tabs.find(t => t.id === activeTabId);
+                if (tab) {
+                    tab.url = finalUrl;
+                    // Simple title formatting
+                    if (finalUrl === 'liquid://home') tab.title = 'Liquid Home';
+                    else {
+                        try {
+                            const urlObj = new URL(finalUrl);
+                            tab.title = urlObj.hostname.replace('www.', '');
+                        } catch {
+                            tab.title = rawUrl;
+                        }
+                    }
+                }
+                renderTabs();
+            }
+        }
+
+        // Listen for Enter key on Address Bar
+        urlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                loadUrl(urlInput.value);
+                urlInput.blur();
+            }
+        });
+
+        // Initial Render
+        renderTabs();
+
+        /* --- TEXT EDITOR APP LOGIC --- */
+        const textEditor = document.getElementById('text-editor');
+        const viewport = document.querySelector('.viewport');
+
+        function toggleEditor() {
+            if (textEditor.classList.contains('hidden')) {
+                textEditor.classList.remove('hidden');
+                textEditor.classList.add('flex');
+                // Tile the window alongside the browser dynamically
+                viewport.style.gridTemplateColumns = '1fr 1fr 300px';
+            } else {
+                textEditor.classList.add('hidden');
+                textEditor.classList.remove('flex');
+                // Revert to normal layout
+                viewport.style.gridTemplateColumns = '1fr 300px';
+            }
+        }
+
+        /* --- HARDWARE SIMULATION LOGIC --- */
+        let frameCount = 0;
+        let lastFpsTime = performance.now();
+        const fpsCounter = document.getElementById('fps-counter');
+        const ramCounter = document.getElementById('ram-counter');
+        const ramBar = document.getElementById('ram-bar');
+        
+        let baseRam = 2.4;
+        setInterval(() => {
+            // Fluctuate RAM usage slightly to look realistic
+            const fluctuation = (Math.random() - 0.5) * 0.1;
+            let currentRam = baseRam + fluctuation;
+            if(currentRam < 1.0) currentRam = 1.0;
+            if(currentRam > 6.0) currentRam = 6.0;
+            ramCounter.innerText = currentRam.toFixed(2) + 'GB';
+            
+            // Update bar percentage (assuming 8GB total max for visual)
+            const percent = (currentRam / 8.0) * 100;
+            ramBar.style.width = percent + '%';
+            
+            // Change color based on load
+            if(percent > 70) ramBar.className = "h-full bg-red-400 rounded transition-all duration-1000";
+            else if(percent > 40) ramBar.className = "h-full bg-yellow-400 rounded transition-all duration-1000";
+            else ramBar.className = "h-full bg-green-400 rounded transition-all duration-1000";
+        }, 2000);
+
+
+        /* --- WEBGL & SHADER LOGIC --- */
+        const canvas = document.getElementById('glCanvas');
+        const gl = canvas.getContext('webgl');
+
+        const vs = `attribute vec4 p; void main() { gl_Position = p; }`;
+        const fs = `
+            precision highp float;
+            uniform vec2 res;
+            uniform float time;
+            uniform vec2 mouse;
+            uniform vec3 col;
+            uniform float visc;
+
+            float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+            float noise(vec2 p) {
+                vec2 i = floor(p); vec2 f = fract(p);
+                f = f*f*(3.0-2.0*f);
+                return mix(mix(hash(i + vec2(0,0)), hash(i + vec2(1,0)), f.x),
+                           mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), f.x), f.y);
+            }
+
+            void main() {
+                vec2 uv = gl_FragCoord.xy / res.xy;
+                vec2 m = mouse / res.xy;
+                vec2 p = (uv - 0.5) * vec2(res.x/res.y, 1.0);
+                vec2 mp = (m - 0.5) * vec2(res.x/res.y, 1.0);
+
+                float d = length(p - mp);
+                float ripple = sin(d * 12.0 - time * 1.5) * exp(-d * 4.0);
+                
+                vec2 refUv = uv + ripple * 0.08 * visc;
+                refUv.x += noise(p * 4.0 + time * 0.1) * 0.03;
+                
+                vec3 base = vec3(0.02, 0.02, 0.04);
+                float glow = smoothstep(0.7, 0.0, d);
+                float spec = pow(max(0.0, 1.0 - length(uv + (p-mp)*0.15 - m)), 20.0);
+                
+                vec3 fCol = mix(base, col, glow * 0.6);
+                fCol += vec3(1.0) * spec * 0.5;
+                fCol *= 1.1 - length(uv - 0.5); // Vignette
+
+                gl_FragColor = vec4(fCol, 1.0);
+            }
+        `;
+
+        const program = gl.createProgram();
+        const s = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); gl.attachShader(program, s); };
+        s(gl.VERTEX_SHADER, vs); s(gl.FRAGMENT_SHADER, fs); gl.linkProgram(program);
+        const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+        const pLoc = gl.getAttribLocation(program, 'p');
+        const uniforms = {
+            res: gl.getUniformLocation(program, 'res'),
+            time: gl.getUniformLocation(program, 'time'),
+            mouse: gl.getUniformLocation(program, 'mouse'),
+            col: gl.getUniformLocation(program, 'col'),
+            visc: gl.getUniformLocation(program, 'visc')
+        };
+
+        let mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+        let currentVisc = 0.5;
+        let currentCol = [0.38, 0.4, 0.94];
+
+        // Track mouse globally
+        window.addEventListener('mousemove', e => { 
+            mouse.tx = e.clientX; 
+            mouse.ty = window.innerHeight - e.clientY; 
+        });
+
+        // Slider bindings
+        document.getElementById('viscRange').oninput = (e) => currentVisc = e.target.value / 100;
+        
+        // Color update function
+        window.updateColor = (h) => {
+            const r = parseInt(h.slice(1,3),16)/255, g = parseInt(h.slice(3,5),16)/255, b = parseInt(h.slice(5,7),16)/255;
+            currentCol = [r, g, b];
+            document.querySelectorAll('.blob').forEach(bl => bl.style.background = h);
+        };
+
+        /* --- UI PHYSICS --- */
+        const elements = document.querySelectorAll('.interactive-element');
+        function updatePhysics() {
+            elements.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                if (rect.width === 0) return; // Skip elements that are currently hidden
+                
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                // If hover is inside an iframe, don't tilt as aggressively to preserve usability
+                let multiplier = 0.003; 
+                
+                const dx = (mouse.tx - centerX) * multiplier;
+                const dy = (window.innerHeight - mouse.ty - centerY) * multiplier;
+                
+                const tiltX = dy * -0.5;
+                const tiltY = dx * 0.5;
+                
+                el.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateZ(5px)`;
+            });
+        }
+
+        /* --- RENDER LOOP --- */
+        function loop(t) {
+            // Calculate real FPS
+            frameCount++;
+            if (t - lastFpsTime >= 1000) {
+                fpsCounter.innerText = frameCount.toFixed(1);
+                frameCount = 0;
+                lastFpsTime = t;
+            }
+
+            // Smooth mouse follow for shader
+            mouse.x += (mouse.tx - mouse.x) * 0.1;
+            mouse.y += (mouse.ty - mouse.y) * 0.1;
+
+            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+                canvas.width = window.innerWidth; 
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+
+            gl.useProgram(program);
+            gl.enableVertexAttribArray(pLoc);
+            gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+            gl.uniform2f(uniforms.res, canvas.width, canvas.height);
+            gl.uniform1f(uniforms.time, t * 0.001);
+            gl.uniform2f(uniforms.mouse, mouse.x, mouse.y);
+            gl.uniform3fv(uniforms.col, currentCol);
+            gl.uniform1f(uniforms.visc, currentVisc);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            updatePhysics();
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
