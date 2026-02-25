@@ -2,6 +2,7 @@
 
 ## Demos
   - [First Day Demo](01-first-demo)
+  - [scope](02-scope)
 
 ## assignments
   - [Interactive Scene](Mega-Bowl)
