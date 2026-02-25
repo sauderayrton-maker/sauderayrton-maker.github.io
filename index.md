@@ -9,3 +9,4 @@
 
 ## ai slop
   - [amazing Browser](liquid-Browser)
+  - [icey vs code theme that you NEED](vsCodeTHEME)
