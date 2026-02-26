@@ -3,541 +3,535 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>p5.js Liquid OS Concept</title>
-    <!-- Load p5.js and p5.sound/dom -->
+    <title>p5.js Liquid OS - Pro Build</title>
+    <!-- Load p5.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <style>
         body, html {
-            margin: 0; padding: 0; overflow: hidden; background: #030303;
-            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0; padding: 0; overflow: hidden; background: #050505;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             color: white; user-select: none;
         }
-        /* Style the DOM elements mapped over the canvas */
-        .dom-element {
-            position: absolute;
-            border: none;
-            outline: none;
+        /* DOM Elements mapped perfectly to canvas */
+        .app-dom-node {
+            position: absolute; border: none; outline: none;
             border-radius: 0 0 16px 16px;
-            background: rgba(255,255,255,0.95);
-            transition: opacity 0.2s, box-shadow 0.2s;
+            background: rgba(255,255,255,0.98);
+            transition: opacity 0.15s ease-out;
             z-index: 10;
         }
-        #liquid-editor {
-            background: rgba(10, 10, 15, 0.6);
-            backdrop-filter: blur(20px);
-            color: #a5b4fc;
-            font-family: 'Courier New', Courier, monospace;
-            padding: 20px;
-            resize: none;
-            line-height: 1.6;
+        #app-editor {
+            background: rgba(15, 15, 20, 0.8); backdrop-filter: blur(10px);
+            color: #c7d2fe; font-family: 'Fira Code', 'Courier New', monospace;
+            padding: 20px; resize: none; line-height: 1.5; font-size: 14px;
         }
-        #liquid-browser {
-            background: white;
-        }
+        /* Hide DOM elements when interacting with the p5 Dock */
+        .dock-hover .app-dom-node { pointer-events: none; }
     </style>
 </head>
 <body>
 
 <script>
 // ==========================================
-// CORE SYSTEM VARIABLES
+// SYSTEM CORE
 // ==========================================
-let apps = [];
-let dock = [];
-let theme = { bg1: [99, 102, 241], bg2: [236, 72, 153], glass: 20 };
-let physics = { speed: 0.1, parallax: 0.05, phoneScrollTarget: 0, phoneScrollCurrent: 0 };
-let blobs = [];
-let toast = { msg: "", alpha: 0, timer: 0 };
+let os;
 
-// DOM Elements mapped to canvas
-let domBrowser, domEditor;
-
-// ==========================================
-// SETUP & INITIALIZATION
-// ==========================================
 function setup() {
     createCanvas(windowWidth, windowHeight);
-    
-    // Background Blobs
-    for(let i=0; i<3; i++) blobs.push({ x: random(width), y: random(height), r: random(400, 800), vx: random(-1, 1), vy: random(-1, 1) });
-
-    // Initialize Apps (Tiling Engine objects)
-    apps = [
-        { id: 'browser', title: 'Liquid Web', active: true, flex: 2, tx: 0, ty: 0, tw: 0, th: 0, x: 0, y: 0, w: 0, h: 0, minW: 400, color: [255,255,255] },
-        { id: 'editor', title: 'p5_Code', active: false, flex: 1.2, tx: 0, ty: 0, tw: 0, th: 0, x: 0, y: 0, w: 0, h: 0, minW: 300, color: [165, 180, 252] },
-        { id: 'phone', title: 'Feed', active: false, flex: 0.8, tx: 0, ty: 0, tw: 0, th: 0, x: 0, y: 0, w: 0, h: 0, minW: 320, color: [250, 250, 250] },
-        { id: 'settings', title: 'OS Settings', active: false, flex: 0.8, tx: 0, ty: 0, tw: 0, th: 0, x: 0, y: 0, w: 0, h: 0, minW: 300, color: [200, 200, 200] }
-    ];
-
-    // Initialize Taskbar Dock
-    dock = [
-        { id: 'browser', label: 'Web (Ctrl+B)', icon: '🌐' },
-        { id: 'editor', label: 'Code (Ctrl+E)', icon: '💻' },
-        { id: 'phone', label: 'Feed (Ctrl+M)', icon: '📱' },
-        { id: 'settings', label: 'Config (Ctrl+S)', icon: '⚙️' }
-    ];
-
-    // Setup DOM Elements
-    domBrowser = createElement('iframe');
-    domBrowser.class('dom-element');
-    domBrowser.id('liquid-browser');
-    domBrowser.attribute('src', 'https://en.wikipedia.org/wiki/P5.js');
-
-    domEditor = createElement('textarea');
-    domEditor.class('dom-element');
-    domEditor.id('liquid-editor');
-    domEditor.value('// Welcome to pure p5.js OS\n\nfunction setup() {\n  createCanvas(windowWidth, windowHeight);\n  console.log("Locked in.");\n}\n\nfunction draw() {\n  background(0);\n}');
-    domEditor.hide();
-
-    calculateLayout();
-    
-    // Snap to initial layout instantly
-    apps.forEach(app => { app.x = app.tx; app.y = app.ty; app.w = app.tw; app.h = app.th; });
+    os = new LiquidOS();
 }
 
-// ==========================================
-// MAIN DRAW LOOP
-// ==========================================
 function draw() {
-    background(10, 10, 15);
-    drawFluidBackground();
-    
-    calculateLayout(); // Continuously update target positions
-    
-    // Draw Apps
-    let activeApps = apps.filter(a => a.active);
-    for (let app of apps) {
-        // Physics Interpolation (Lerp)
-        app.x = lerp(app.x, app.tx, physics.speed);
-        app.y = lerp(app.y, app.ty, physics.speed);
-        app.w = lerp(app.w, app.tw, physics.speed);
-        app.h = lerp(app.h, app.th, physics.speed);
-
-        if (app.w > 10) { // Only draw if big enough (not fully closed)
-            drawWindow(app);
-            if (app.id === 'phone') drawPhoneApp(app);
-            if (app.id === 'settings') drawSettingsApp(app);
-        }
-    }
-
-    // Sync DOM elements to calculated p5 coords
-    syncDOM();
-    
-    drawDock();
-    drawToast();
+    os.update();
+    os.render();
 }
 
 // ==========================================
-// LAYOUT ENGINE (TILING MATH)
+// EVENT ROUTING
 // ==========================================
-function calculateLayout() {
-    let margin = 40;
-    let gap = 20;
-    let topOffset = 40;
-    let bottomSpace = 120; // Room for dock
-    let activeApps = apps.filter(a => a.active);
-    
-    if (activeApps.length === 0) return;
-
-    let totalFlex = activeApps.reduce((sum, app) => sum + app.flex, 0);
-    let totalAvailableWidth = width - (margin * 2) - (gap * (activeApps.length - 1));
-    
-    let currentX = margin;
-    
-    for (let app of apps) {
-        if (app.active) {
-            let targetW = (app.flex / totalFlex) * totalAvailableWidth;
-            // Enforce constraints
-            if (app.id === 'phone') targetW = min(targetW, 360);
-            if (app.id === 'settings') targetW = min(targetW, 340);
-            
-            app.tw = targetW;
-            app.th = height - margin - topOffset - bottomSpace;
-            app.tx = currentX;
-            app.ty = margin + topOffset;
-            
-            currentX += app.tw + gap;
-        } else {
-            // Shrink to nothing in the center of where it was
-            app.tw = 0;
-            app.tx = app.x + app.w/2; 
-        }
-    }
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+    os.layoutEngine.recalculate();
+    os.bgBuffer = os.createBackgroundBuffer(); // Redraw background on resize
 }
 
+function mousePressed() { os.handleMousePress(); }
+function mouseWheel(e) { os.handleScroll(e); }
+function keyPressed() { os.handleKeyPress(); }
+
 // ==========================================
-// DRAWING FUNCTIONS
+// CLASSES
 // ==========================================
-function drawFluidBackground() {
-    noStroke();
-    drawingContext.filter = 'blur(100px)'; // Heavy canvas blur
-    
-    for(let i=0; i<blobs.length; i++) {
-        let b = blobs[i];
-        b.x += b.vx; b.y += b.vy;
-        if(b.x < 0 || b.x > width) b.vx *= -1;
-        if(b.y < 0 || b.y > height) b.vy *= -1;
+
+class LiquidOS {
+    constructor() {
+        this.theme = { primary: [99, 102, 241], secondary: [236, 72, 153] };
+        this.bgBuffer = this.createBackgroundBuffer();
+        this.toastTimer = 0;
+        this.toastMsg = "";
         
-        let col = i % 2 === 0 ? theme.bg1 : theme.bg2;
-        fill(col[0], col[1], col[2], 150);
-        circle(b.x, b.y, b.r);
-    }
-    drawingContext.filter = 'none'; // Reset filter for UI
-}
-
-function drawWindow(app) {
-    push();
-    translate(app.x, app.y);
-    
-    // Calculate Parallax based on mouse proximity to window center
-    let centerX = app.x + app.w/2;
-    let centerY = app.y + app.h/2;
-    let pX = (mouseX - centerX) * physics.parallax;
-    let pY = (mouseY - centerY) * physics.parallax;
-
-    // Glass Shadow
-    drawingContext.shadowBlur = 40;
-    drawingContext.shadowColor = 'rgba(0,0,0,0.5)';
-    
-    // Glass Background
-    fill(255, 255, 255, theme.glass);
-    stroke(255, 255, 255, 40);
-    strokeWeight(1.5);
-    rect(0, 0, app.w, app.h, 16);
-    
-    drawingContext.shadowBlur = 0; // Reset shadow
-
-    // Chrome / Header (affected by parallax)
-    translate(pX * 0.2, pY * 0.2); // Subtle shift for header
-    
-    // Top Bar
-    fill(0, 0, 0, 100);
-    noStroke();
-    rect(0, 0, app.w, 40, 16, 16, 0, 0);
-    
-    // Window Controls
-    fill(255, 95, 86); circle(20, 20, 12); // Close
-    fill(255, 189, 46); circle(40, 20, 12); // Min
-    fill(39, 201, 63); circle(60, 20, 12); // Max
-    
-    // Title
-    fill(app.color[0], app.color[1], app.color[2]);
-    textAlign(CENTER, CENTER);
-    textSize(12);
-    textStyle(BOLD);
-    text(app.title.toUpperCase(), app.w/2, 20);
-    
-    pop();
-}
-
-function syncDOM() {
-    let browser = apps.find(a => a.id === 'browser');
-    if (browser.active && browser.w > 100) {
-        domBrowser.show();
-        // Shift DOM down to account for the drawn header (40px)
-        domBrowser.position(browser.x, browser.y + 40);
-        domBrowser.size(browser.w, browser.h - 40);
-        domBrowser.style('opacity', map(browser.w, 0, browser.tw, 0, 1));
-    } else {
-        domBrowser.hide();
-    }
-
-    let editor = apps.find(a => a.id === 'editor');
-    if (editor.active && editor.w > 100) {
-        domEditor.show();
-        domEditor.position(editor.x, editor.y + 40);
-        domEditor.size(editor.w, editor.h - 40);
-        domEditor.style('opacity', map(editor.w, 0, editor.tw, 0, 1));
-    } else {
-        domEditor.hide();
-    }
-}
-
-// ==========================================
-// TIKTOK P5 ENGINE (The Phone App)
-// ==========================================
-function drawPhoneApp(app) {
-    if (app.w < 200) return; // Wait until large enough
-    push();
-    translate(app.x, app.y + 40); // Move inside content area
-    
-    // Smooth scrolling physics
-    physics.phoneScrollCurrent = lerp(physics.phoneScrollCurrent, physics.phoneScrollTarget, 0.1);
-    let sY = physics.phoneScrollCurrent;
-    let feedH = app.h - 40;
-
-    // Create a clipping mask for the phone content
-    drawingContext.save();
-    drawingContext.beginPath();
-    drawingContext.roundRect(0, 0, app.w, feedH, [0, 0, 16, 16]);
-    drawingContext.clip();
-
-    // Draw 3 "Generative Videos" stacked
-    for (let i = 0; i < 4; i++) {
-        let videoY = sY + (i * feedH);
-        if (videoY > feedH || videoY + feedH < 0) continue; // Culling
+        // Initialize Apps
+        this.apps = [
+            new Window('browser', 'Liquid Web', 2, 'iframe', 'https://example.com'),
+            new Window('editor', 'p5_Code', 1.2, 'textarea', '// Welcome to pure p5.js OS\n\nfunction setup() {\n  createCanvas(windowWidth, windowHeight);\n  console.log("Locked in.");\n}'),
+            new Window('phone', 'Feed', 0.8, 'canvas_only', null),
+            new Window('settings', 'Config', 0.8, 'canvas_only', null)
+        ];
         
-        // Draw Generative Background for Video
+        // Default active states
+        this.getApp('browser').open();
+        this.getApp('phone').open();
+
+        this.dock = new Dock(this);
+        this.layoutEngine = new LayoutEngine(this.apps);
+        this.layoutEngine.recalculate();
+    }
+
+    getApp(id) {
+        return this.apps.find(a => a.id === id);
+    }
+
+    createBackgroundBuffer() {
+        let pg = createGraphics(windowWidth, windowHeight);
+        pg.noStroke();
+        // Create a fast, static blurred background
+        for (let i = 0; i < 5; i++) {
+            pg.fill(i % 2 === 0 ? this.theme.primary[0] : this.theme.secondary[0], 
+                    i % 2 === 0 ? this.theme.primary[1] : this.theme.secondary[1], 
+                    i % 2 === 0 ? this.theme.primary[2] : this.theme.secondary[2], 100);
+            pg.circle(random(width), random(height), random(600, 1000));
+        }
+        pg.drawingContext.filter = 'blur(80px)';
+        // Draw one final circle to apply the blur filter inside the buffer
+        pg.circle(width/2, height/2, 10); 
+        return pg;
+    }
+
+    showToast(msg) {
+        this.toastMsg = msg;
+        this.toastTimer = 255; // Alpha
+    }
+
+    update() {
+        this.layoutEngine.update();
+        for (let app of this.apps) app.update();
+        this.dock.update();
+        
+        // Manage iframe pointer events based on dock proximity
+        if (mouseY > height - 100) document.body.classList.add('dock-hover');
+        else document.body.classList.remove('dock-hover');
+    }
+
+    render() {
+        // 1. Draw Static Blurred Background
+        image(this.bgBuffer, 0, 0);
+
+        // 2. Draw Floating Particles (Fast)
+        noStroke();
+        fill(255, 20);
+        let t = millis() * 0.0005;
+        for (let i = 0; i < 20; i++) {
+            circle(noise(i, t)*width, noise(i+100, t)*height, noise(i)*30);
+        }
+
+        // 3. Draw Windows
+        for (let app of this.apps) {
+            if (app.w > 5) app.render(); // Only draw if not completely closed
+        }
+
+        // 4. Draw Dock & UI
+        this.dock.render();
+        this.renderToast();
+    }
+
+    renderToast() {
+        if (this.toastTimer <= 0) return;
+        this.toastTimer -= 5;
+        
         push();
-        translate(0, videoY);
-        fill(20 + i*40, 30, 50 + i*20);
-        rect(0, 0, app.w, feedH);
+        translate(width/2, height - 120 - map(this.toastTimer, 0, 255, -20, 0));
+        drawingContext.shadowBlur = 20; drawingContext.shadowColor = 'rgba(0,0,0,0.5)';
+        fill(255, 255, 255, map(this.toastTimer, 0, 255, 0, 40));
+        stroke(255, map(this.toastTimer, 0, 255, 0, 100));
+        rect(-100, 0, 200, 40, 20);
         
-        // Generative art specific to this "video"
-        strokeWeight(2);
-        for(let j=0; j<20; j++) {
-            stroke(255, 100 + j*5);
-            noFill();
-            let phase = millis() * 0.001 + (i*10);
-            bezier(
-                map(sin(phase+j), -1, 1, 0, app.w), j * 30,
-                app.w/2, app.h/2,
-                mouseX - app.x, mouseY - app.y,
-                map(cos(phase-j), -1, 1, 0, app.w), feedH - j*20
-            );
-        }
-
-        // Overlay UI
-        fill(0, 0, 0, 100);
-        rect(0, feedH - 120, app.w, 120); // Gradient overlay
-        
-        fill(255);
-        textAlign(LEFT, TOP);
-        textSize(16); textStyle(BOLD);
-        text("@p5_wizard_" + i, 20, feedH - 100);
-        textSize(12); textStyle(NORMAL);
-        text("Generative mathematics go brrr ✨ #codeart", 20, feedH - 75, app.w - 80, 50);
-        
-        // Buttons right side
-        textAlign(CENTER, CENTER);
-        textSize(24);
-        fill(255);
-        text("🤍", app.w - 30, feedH - 180);
-        textSize(10); text(Math.floor(noise(i)*100) + "k", app.w - 30, feedH - 155);
-        
-        textSize(24);
-        text("💬", app.w - 30, feedH - 110);
-        textSize(10); text(Math.floor(noise(i+5)*1000), app.w - 30, feedH - 85);
-
+        fill(255, this.toastTimer); noStroke();
+        textAlign(CENTER, CENTER); textSize(13); textStyle(BOLD); 
+        text(this.toastMsg, 0, 20);
         pop();
     }
-    
-    // Phone Notch
-    fill(0);
-    rect(app.w/2 - 60, -5, 120, 25, 0, 0, 12, 12);
 
-    drawingContext.restore(); // End clip
-    pop();
-}
-
-// ==========================================
-// SETTINGS APP
-// ==========================================
-function drawSettingsApp(app) {
-    if (app.w < 200) return;
-    push();
-    translate(app.x, app.y + 40);
-    let pX = (mouseX - (app.x + app.w/2)) * physics.parallax;
-    
-    fill(255);
-    textAlign(LEFT, TOP);
-    textSize(24); textStyle(BOLD);
-    text("Customization", 20 + pX, 20);
-    
-    textSize(10); fill(255, 150); text("THEME COLORS", 20 + pX, 70);
-    
-    // Color Buttons (Visual only, logic in mousePressed)
-    let colors = [
-        {name: "VAPOR", c1: [99,102,241], c2: [236,72,153]},
-        {name: "MATRIX", c1: [16,185,129], c2: [6,78,59]},
-        {name: "ICE", c1: [56,189,248], c2: [248,250,252]}
-    ];
-    
-    for(let i=0; i<colors.length; i++) {
-        let btnY = 90 + (i*50);
-        fill(colors[i].c1[0], colors[i].c1[1], colors[i].c1[2], 50);
-        stroke(colors[i].c1); strokeWeight(1);
-        rect(20 + pX, btnY, app.w - 40, 40, 8);
-        fill(255); noStroke(); textAlign(CENTER, CENTER); textSize(12);
-        text(colors[i].name, app.w/2 + pX, btnY + 20);
+    handleMousePress() {
+        if (this.dock.checkClicks()) return;
+        for (let app of this.apps) app.checkClicks();
     }
-    
-    textSize(10); fill(255, 150); textAlign(LEFT, TOP); text("TILING SPEED", 20 + pX, 260);
-    // Draw fake slider
-    fill(255, 50); rect(20 + pX, 280, app.w - 40, 6, 3);
-    fill(255); circle(20 + pX + map(physics.speed, 0.05, 0.3, 0, app.w-40), 283, 14);
 
-    pop();
-}
-
-// ==========================================
-// MAGNIFYING DOCK
-// ==========================================
-function drawDock() {
-    let dockW = (dock.length * 60) + 20;
-    let dockX = width/2 - dockW/2;
-    let dockY = height - 80;
-    
-    // Dock Background
-    fill(255, 255, 255, 10);
-    stroke(255, 255, 255, 30);
-    drawingContext.shadowBlur = 20;
-    drawingContext.shadowColor = 'rgba(0,0,0,0.5)';
-    rect(dockX, dockY, dockW, 60, 20);
-    drawingContext.shadowBlur = 0;
-
-    // Draw Icons with Magnification
-    for(let i=0; i<dock.length; i++) {
-        let item = dock[i];
-        let appData = apps.find(a => a.id === item.id);
-        let baseY = dockY + 10;
-        let baseX = dockX + 20 + (i * 60);
-        
-        // Distance from mouse for magnification
-        let d = dist(mouseX, mouseY, baseX + 20, baseY + 20);
-        let scale = map(constrain(d, 0, 150), 0, 150, 1.8, 1);
-        if (mouseY < dockY - 50) scale = 1; // Only magnify if close
-
-        let sSize = 40 * scale;
-        let sX = baseX - (sSize - 40)/2;
-        let sY = baseY - (sSize - 40);
-
-        // Icon bg
-        fill(appData.active ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.05)');
-        stroke(255, 50);
-        rect(sX, sY, sSize, sSize, 12 * scale);
-        
-        // Active indicator dot
-        if (appData.active) {
-            fill(255); noStroke();
-            circle(baseX + 20, dockY + 55, 4);
+    handleScroll(e) {
+        let phone = this.getApp('phone');
+        if (phone.isOpen && mouseX > phone.x && mouseX < phone.x + phone.w && mouseY > phone.y && mouseY < phone.y + phone.h) {
+            phone.scrollTarget -= e.delta * 0.8;
+            phone.scrollTarget = constrain(phone.scrollTarget, -1500, 0);
         }
+    }
 
-        // Emoji
-        textAlign(CENTER, CENTER);
-        textSize(20 * scale);
-        fill(255);
-        text(item.icon, sX + sSize/2, sY + sSize/2);
-        
-        // Hover Label
-        if (d < 30 && mouseY > dockY - 20) {
-            textSize(12);
-            fill(0, 150); rect(sX + sSize/2 - textWidth(item.label)/2 - 10, sY - 30, textWidth(item.label) + 20, 24, 12);
-            fill(255); text(item.label, sX + sSize/2, sY - 18);
+    handleKeyPress() {
+        if (keyIsDown(CONTROL)) {
+            if (keyCode === 66) this.getApp('browser').toggle();
+            if (keyCode === 69) this.getApp('editor').toggle();
+            if (keyCode === 77) this.getApp('phone').toggle();
+            if (keyCode === 83) this.getApp('settings').toggle();
+            this.layoutEngine.recalculate();
         }
     }
 }
 
 // ==========================================
-// TOAST NOTIFICATIONS
+// WINDOW CLASS
 // ==========================================
-function showToast(message) {
-    toast.msg = message;
-    toast.alpha = 255;
-    toast.timer = millis() + 2000;
-}
+class Window {
+    constructor(id, title, flex, domType, domContent) {
+        this.id = id;
+        this.title = title;
+        this.flex = flex;
+        this.isOpen = false;
+        
+        // Physics
+        this.x = width/2; this.y = height/2; this.w = 0; this.h = 0;
+        this.tx = width/2; this.ty = height/2; this.tw = 0; this.th = 0;
+        
+        // App specific state
+        this.scrollTarget = 0;
+        this.scrollCurrent = 0;
 
-function drawToast() {
-    if (toast.alpha <= 0) return;
-    if (millis() > toast.timer) toast.alpha -= 10; // Fade out
-    
-    push();
-    drawingContext.shadowBlur = 20; drawingContext.shadowColor = 'rgba(0,0,0,0.5)';
-    fill(255, 255, 255, map(toast.alpha, 0, 255, 0, 30));
-    stroke(255, map(toast.alpha, 0, 255, 0, 100));
-    translate(width/2, height - 120 - map(toast.alpha, 0, 255, -20, 0));
-    rect(-100, 0, 200, 40, 20);
-    
-    fill(255, toast.alpha); noStroke();
-    textAlign(CENTER, CENTER); textSize(12); textStyle(BOLD); text(toast.msg, 0, 20);
-    pop();
-}
-
-// ==========================================
-// INTERACTION & EVENTS
-// ==========================================
-function toggleApp(id) {
-    let app = apps.find(a => a.id === id);
-    let activeCount = apps.filter(a => a.active).length;
-    
-    if (!app.active) {
-        app.active = true;
-        showToast(app.title + " Opened");
-    } else {
-        if (activeCount <= 1) {
-            showToast("Cannot close last window");
-            return;
+        // DOM Element setup
+        this.domNode = null;
+        if (domType !== 'canvas_only') {
+            this.domNode = createElement(domType);
+            this.domNode.class('app-dom-node');
+            this.domNode.id('app-' + id);
+            if (domType === 'iframe') this.domNode.attribute('src', domContent);
+            if (domType === 'textarea') this.domNode.value(domContent);
+            this.domNode.hide();
         }
-        app.active = false;
-        showToast(app.title + " Closed");
-    }
-}
-
-function mousePressed() {
-    // Check Dock Clicks
-    let dockW = (dock.length * 60) + 20;
-    let dockX = width/2 - dockW/2;
-    let dockY = height - 80;
-    
-    if (mouseY > dockY && mouseY < dockY + 60 && mouseX > dockX && mouseX < dockX + dockW) {
-        let index = Math.floor((mouseX - dockX - 10) / 60);
-        if (index >= 0 && index < dock.length) toggleApp(dock[index].id);
-        return;
     }
 
-    // Check Settings App Clicks (Color themes)
-    let setApp = apps.find(a => a.id === 'settings');
-    if (setApp.active && mouseX > setApp.x && mouseX < setApp.x + setApp.w && mouseY > setApp.y && mouseY < setApp.y + setApp.h) {
-        let relX = mouseX - setApp.x; let relY = mouseY - setApp.y - 40;
-        if (relX > 20 && relX < setApp.w - 20) {
-            if (relY > 90 && relY < 130) { theme.bg1 = [99,102,241]; theme.bg2 = [236,72,153]; showToast("Vapor Theme Applied"); }
-            if (relY > 140 && relY < 180) { theme.bg1 = [16,185,129]; theme.bg2 = [6,78,59]; showToast("Matrix Theme Applied");}
-            if (relY > 190 && relY < 230) { theme.bg1 = [56,189,248]; theme.bg2 = [248,250,252]; showToast("Ice Theme Applied");}
-            
-            // Speed Slider Hitbox
-            if(relY > 270 && relY < 300) {
-                physics.speed = map(relX, 20, setApp.w-20, 0.05, 0.3);
-                physics.speed = constrain(physics.speed, 0.05, 0.3);
+    open() { this.isOpen = true; if(os) os.showToast(this.title + " Opened"); }
+    close() { 
+        let openCount = os.apps.filter(a => a.isOpen).length;
+        if (openCount <= 1) { os.showToast("Cannot close last window"); return; }
+        this.isOpen = false; 
+        if(os) os.showToast(this.title + " Closed"); 
+    }
+    toggle() { this.isOpen ? this.close() : this.open(); }
+
+    update() {
+        // Physics lerp
+        let speed = 0.15;
+        this.x = lerp(this.x, this.tx, speed);
+        this.y = lerp(this.y, this.ty, speed);
+        this.w = lerp(this.w, this.tw, speed);
+        this.h = lerp(this.h, this.th, speed);
+
+        // Sync DOM
+        if (this.domNode) {
+            let isAnimating = abs(this.w - this.tw) > 2; // Threshold
+            if (this.isOpen && this.w > 100) {
+                this.domNode.show();
+                this.domNode.position(this.x, this.y + 40);
+                this.domNode.size(this.w, this.h - 40);
+                
+                // Fade out slightly during rapid movement for performance & aesthetics
+                this.domNode.style('opacity', isAnimating ? '0.3' : '1');
+            } else {
+                this.domNode.hide();
             }
         }
     }
-}
 
-function mouseWheel(event) {
-    // Scroll routing for Phone app
-    let phone = apps.find(a => a.id === 'phone');
-    if (phone.active && mouseX > phone.x && mouseX < phone.x + phone.w && mouseY > phone.y && mouseY < phone.y + phone.h) {
-        physics.phoneScrollTarget -= event.delta * 0.5; // Invert and dampen
-        let maxScroll = -((4 * (phone.h - 40)) - (phone.h - 40)); 
-        physics.phoneScrollTarget = constrain(physics.phoneScrollTarget, maxScroll, 0);
+    render() {
+        push();
+        translate(this.x, this.y);
+        
+        // Window Glass Base
+        drawingContext.shadowBlur = 30; drawingContext.shadowColor = 'rgba(0,0,0,0.4)';
+        fill(255, 255, 255, 15); stroke(255, 255, 255, 40); strokeWeight(1);
+        rect(0, 0, this.w, this.h, 16);
+        drawingContext.shadowBlur = 0;
+
+        // Header Chrome
+        fill(0, 0, 0, 150); noStroke();
+        rect(0, 0, this.w, 40, 16, 16, 0, 0);
+        
+        // Window Buttons & Hitboxes
+        let mX = mouseX - this.x; let mY = mouseY - this.y;
+        
+        // Close Button (Red)
+        let rHover = dist(mX, mY, 20, 20) < 6;
+        fill(rHover ? color(255, 120, 110) : color(255, 95, 86)); circle(20, 20, 12);
+        
+        // Min/Max (Decorative for now)
+        fill(255, 189, 46); circle(40, 20, 12);
+        fill(39, 201, 63); circle(60, 20, 12);
+        
+        // Title
+        fill(255); textAlign(CENTER, CENTER); textSize(12); textStyle(BOLD);
+        text(this.title.toUpperCase(), this.w/2, 20);
+
+        // App Specific Canvas Content
+        if (this.id === 'phone' && this.w > 100) this.renderPhoneApp();
+        if (this.id === 'settings' && this.w > 100) this.renderSettingsApp();
+
+        pop();
+    }
+
+    renderPhoneApp() {
+        this.scrollCurrent = lerp(this.scrollCurrent, this.scrollTarget, 0.1);
+        let contentH = this.h - 40;
+        
+        drawingContext.save();
+        drawingContext.beginPath();
+        translate(0, 40);
+        drawingContext.roundRect(0, 0, this.w, contentH, [0, 0, 16, 16]);
+        drawingContext.clip();
+
+        // Feed Items
+        for (let i = 0; i < 4; i++) {
+            let itemY = this.scrollCurrent + (i * contentH);
+            if (itemY > contentH || itemY + contentH < 0) continue; // Culling
+
+            push();
+            translate(0, itemY);
+            
+            // Background
+            fill(10 + i*20, 15, 25 + i*10); rect(0, 0, this.w, contentH);
+            
+            // Generative Math Art
+            strokeWeight(1.5);
+            let time = millis() * 0.001 + i*100;
+            for(let j=0; j<15; j++) {
+                stroke(255, 50 + j*10); noFill();
+                beginShape();
+                for(let x=0; x<this.w; x+=20) {
+                    let y = contentH/2 + sin(x*0.01 + time + j)*50 + cos(x*0.02 - time)*50;
+                    vertex(x, y);
+                }
+                endShape();
+            }
+
+            // Overlay UI
+            fill(0, 150); rect(0, contentH - 120, this.w, 120);
+            fill(255); textAlign(LEFT, TOP); textSize(16); textStyle(BOLD);
+            text("@p5_master_" + i, 20, contentH - 100);
+            textSize(13); textStyle(NORMAL); fill(200);
+            text("Procedural wave engine 🌊 #creativecode", 20, contentH - 75, this.w - 80, 50);
+
+            // Floating Hearts
+            textSize(24); fill(255);
+            text("🤍", this.w - 40, contentH - 160);
+            text("💬", this.w - 40, contentH - 100);
+            pop();
+        }
+        drawingContext.restore();
+    }
+
+    renderSettingsApp() {
+        push();
+        translate(0, 40);
+        fill(255); textAlign(LEFT, TOP); textSize(24); textStyle(BOLD);
+        text("System Preferences", 30, 30);
+        
+        textSize(12); fill(150); text("SYSTEM LOAD", 30, 80);
+        
+        // Fancy CPU Graph
+        stroke(os.theme.primary); strokeWeight(2); noFill();
+        beginShape();
+        for(let i=0; i<this.w - 60; i+=10) {
+            vertex(30 + i, 150 - noise(i*0.05, millis()*0.002)*50);
+        }
+        endShape();
+        
+        textSize(12); fill(150); noStroke(); text("ARCHITECTURE", 30, 180);
+        fill(255); textSize(14);
+        text("LiquidOS v2.0 (Pro Build)\np5.js v1.9.0 Engine\nES6 Object-Oriented Core", 30, 210);
+        pop();
+    }
+
+    checkClicks() {
+        if (!this.isOpen) return false;
+        let mX = mouseX - this.x; let mY = mouseY - this.y;
+        
+        // Header bar clicks
+        if (mY > 0 && mY < 40 && mX > 0 && mX < this.w) {
+            // Close Button
+            if (dist(mX, mY, 20, 20) < 10) {
+                this.close();
+                os.layoutEngine.recalculate();
+                return true;
+            }
+        }
+        return false;
     }
 }
 
-function mouseDragged() {
-    // Allow dragging the speed slider in settings
-    let setApp = apps.find(a => a.id === 'settings');
-    if (setApp.active && mouseX > setApp.x && mouseX < setApp.x + setApp.w && mouseY > setApp.y && mouseY < setApp.y + setApp.h) {
-        let relX = mouseX - setApp.x; let relY = mouseY - setApp.y - 40;
-        if(relY > 270 && relY < 300) {
-            physics.speed = map(relX, 20, setApp.w-20, 0.05, 0.3);
-            physics.speed = constrain(physics.speed, 0.05, 0.3);
+// ==========================================
+// LAYOUT ENGINE
+// ==========================================
+class LayoutEngine {
+    constructor(apps) {
+        this.apps = apps;
+        this.margin = 30;
+        this.gap = 20;
+        this.topOffset = 30;
+        this.bottomSpace = 100;
+    }
+
+    recalculate() {
+        let activeApps = this.apps.filter(a => a.isOpen);
+        if (activeApps.length === 0) return;
+
+        let totalFlex = activeApps.reduce((sum, app) => sum + app.flex, 0);
+        let totalW = width - (this.margin * 2) - (this.gap * (activeApps.length - 1));
+        
+        let currentX = this.margin;
+        
+        for (let app of this.apps) {
+            if (app.isOpen) {
+                let targetW = (app.flex / totalFlex) * totalW;
+                // Min/Max constraints
+                if (app.id === 'phone' || app.id === 'settings') targetW = min(targetW, 400);
+                
+                app.tw = targetW;
+                app.th = height - this.margin - this.topOffset - this.bottomSpace;
+                app.tx = currentX;
+                app.ty = this.margin + this.topOffset;
+                
+                currentX += app.tw + this.gap;
+            } else {
+                // Shrink out of existence perfectly
+                app.tw = 0;
+                app.tx = app.x + app.w/2; 
+            }
         }
     }
-}
 
-function keyPressed() {
-    // Global Keyboard Shortcuts
-    if (keyIsDown(CONTROL)) {
-        if (keyCode === 66) { toggleApp('browser'); return false; } // B
-        if (keyCode === 69) { toggleApp('editor'); return false; }  // E
-        if (keyCode === 77) { toggleApp('phone'); return false; }   // M
-        if (keyCode === 83) { toggleApp('settings'); return false; } // S
+    update() {
+        // Continuous layout enforcement (if window resizes dynamically)
     }
 }
 
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
-    calculateLayout();
+// ==========================================
+// MAC-STYLE DOCK
+// ==========================================
+class Dock {
+    constructor(osRef) {
+        this.os = osRef;
+        this.items = [
+            { id: 'browser', icon: '🌐' },
+            { id: 'editor', icon: '💻' },
+            { id: 'phone', icon: '📱' },
+            { id: 'settings', icon: '⚙️' }
+        ];
+        this.baseSize = 48;
+        this.maxSize = 80;
+        this.range = 150; // How far the wave affects icons
+    }
+
+    update() {
+        // Update math is handled in render for immediate mouse response
+    }
+
+    render() {
+        let dockW = (this.items.length * (this.baseSize + 15)) + 30;
+        let dockX = width/2 - dockW/2;
+        let dockY = height - 70;
+        
+        // Dock Glass Panel
+        drawingContext.shadowBlur = 25; drawingContext.shadowColor = 'rgba(0,0,0,0.5)';
+        fill(255, 255, 255, 15); stroke(255, 255, 255, 40); strokeWeight(1);
+        rect(dockX, dockY, dockW, this.baseSize + 16, 20);
+        drawingContext.shadowBlur = 0;
+
+        let currentX = dockX + 20;
+        let isHoveringDockArea = mouseY > height - 120;
+
+        for (let i = 0; i < this.items.length; i++) {
+            let item = this.items[i];
+            let appData = this.os.getApp(item.id);
+            
+            // True macOS Wave Math
+            let scale = 1;
+            let iconCenterX = currentX + this.baseSize/2;
+            
+            if (isHoveringDockArea) {
+                let distToMouseX = abs(mouseX - iconCenterX);
+                if (distToMouseX < this.range) {
+                    // Cosine interpolation for smooth curve
+                    let factor = cos(map(distToMouseX, 0, this.range, 0, PI/2));
+                    scale = map(factor, 0, 1, 1, this.maxSize / this.baseSize);
+                }
+            }
+
+            let size = this.baseSize * scale;
+            let yOffset = dockY + 8 - (size - this.baseSize); // Push up when growing
+            
+            // Draw Icon Background
+            fill(appData.isOpen ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)');
+            stroke(255, 60);
+            rect(currentX, yOffset, size, size, 14 * scale);
+
+            // Active indicator
+            if (appData.isOpen) {
+                fill(255); noStroke();
+                circle(currentX + size/2, dockY + this.baseSize + 10, 4);
+            }
+
+            // Draw Emoji
+            textAlign(CENTER, CENTER); textSize(size * 0.5); fill(255);
+            text(item.icon, currentX + size/2, yOffset + size/2 + 2);
+
+            // Hover Tooltip
+            if (isHoveringDockArea && abs(mouseX - (currentX + size/2)) < size/2) {
+                fill(0, 200); noStroke();
+                let txtW = textWidth(appData.title) + 20;
+                rect(currentX + size/2 - txtW/2, yOffset - 35, txtW, 26, 8);
+                fill(255); textSize(12);
+                text(appData.title, currentX + size/2, yOffset - 22);
+            }
+
+            // Advance X for next icon. Icons take up more space when magnified.
+            currentX += size + 15;
+        }
+    }
+
+    checkClicks() {
+        let isHoveringDockArea = mouseY > height - 100;
+        if (!isHoveringDockArea) return false;
+
+        let dockW = (this.items.length * (this.baseSize + 15)) + 30;
+        let dockX = width/2 - dockW/2;
+        let currentX = dockX + 20;
+
+        for (let i = 0; i < this.items.length; i++) {
+            let item = this.items[i];
+            let distToMouseX = abs(mouseX - (currentX + this.baseSize/2));
+            
+            let scale = 1;
+            if (distToMouseX < this.range) {
+                let factor = cos(map(distToMouseX, 0, this.range, 0, PI/2));
+                scale = map(factor, 0, 1, 1, this.maxSize / this.baseSize);
+            }
+            let size = this.baseSize * scale;
+
+            if (abs(mouseX - (currentX + size/2)) < size/2) {
+                this.os.getApp(item.id).toggle();
+                this.os.layoutEngine.recalculate();
+                return true;
+            }
+            currentX += size + 15;
+        }
+        return false;
+    }
 }
 </script>
 </body>
