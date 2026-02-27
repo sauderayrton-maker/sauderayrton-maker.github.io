@@ -3,15 +3,11 @@ let speed2 = 2;
 let speed3 = 3; 
 let speedR = 4;
 
-let deltaX;
-let deltaY;
-let ballX;
-let ballY;
+let deltaX, deltaY;
+let ballX, ballY;
 let playerX, playerY;
-let defendX;
-let defendY;
-let recieverX;
-let recieverY;
+let defendX, defendY;
+let recieverX, recieverY;
 let radian;
 let distance;
 let gameStarted = false;
@@ -35,7 +31,8 @@ function draw() {
 
   if (gameStarted) {
     tackle();
-  } else {
+  } 
+  else {
     showStartScreen();
   }
 }
@@ -55,12 +52,14 @@ function tackle() {
     player();
     defender();
     reciever();
-  } else if (distance < 1) {
+  } 
+  else if (distance < 1) {
     fill(0);
     textAlign(CENTER);
     textSize(20);
     text("Tackled!!!!", width / 2, height / 2);
-  } else {
+  } 
+  else {
     fill(0);
     textAlign(CENTER);
     textSize(20);
@@ -86,20 +85,24 @@ function endzone() {
 
 function player() {
   fill(0, 0, 128);
-  rect(playerX, playerY, 15);
+  ellipse(playerX, playerY, 20, 15);
+  fill(255);
+  circle(playerX,playerY, 10);
   control();
 }
 
 function defender() {
   fill(255, 0, 0);
-  rect(defendX, defendY, 15);
+  ellipse(defendX, defendY, 25, 15);
+  fill(255);
+  circle(defendX, defendY, 12);
   track();
 }
 
 function reciever(){
-    fill(0, 0, 255);
-    rect(recieverX, recieverY, 15)
-    rout()
+  fill(0, 0, 255);
+  rect(recieverX, recieverY, 15);
+  rout();
 }
 
 function ball() {
@@ -134,7 +137,7 @@ function track() {
 
 function rout(){
   if (recieverY > 100){
-  recieverY -= speedR;
+    recieverY -= speedR;
   }
   else if (recieverX <= width - 20){
     recieverX += speedR;
