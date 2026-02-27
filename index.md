@@ -1,35 +1,13 @@
-<div align="center">
+# My CS30 Stuff
 
-💻 // CS30_WORKSPACE
+## Demos
+  - [First Day Demo](01-first-demo)
+  - [scope](02-scope)
+  - [images](03-images)
 
-Initializing portfolio... 🟩🟩🟩🟩🟩🟩 100%
+## assignments
+  - [Interactive Scene](Mega-Bowl)
 
-</div>
-
-📂 [ DIR: /DEMOS ]
-
-Class experiments and learning the ropes.
-
-🟢 [run] First Day Demo
-
-🔍 [run] Scope
-
-🖼️ [run] Images
-
-🚀 [ DIR: /ASSIGNMENTS ]
-
-The heavy hitters and boss battles.
-
-🎳 [play] Interactive Scene: Mega-Bowl
-
-☢️ [ DIR: /AI_SLOP_&_MODS ]
-
-Side quests, cool tools, and custom themes.
-
-🌊 [exec] Liquid Browser — An amazing browser experiment.
-
-❄️ [install] Icey VS Code Theme — The theme you absolutely NEED.
-
-<div align="center">
-<i> compiled with ☕ and keyboard smashing </i>
-</div>
+## ai slop
+  - [amazing Browser](liquid-Browser)
+  - [icey vs code theme that you NEED](vsCodeTHEME)
