@@ -93,21 +93,23 @@ function player() {
 
 function defender() {
   fill(255, 0, 0);
-  ellipse(defendX, defendY, 25, 15);
+  ellipse(defendX, defendY, 20, 15);
   fill(255);
-  circle(defendX, defendY, 12);
+  circle(defendX, defendY, 10);
   track();
 }
 
 function reciever(){
-  fill(0, 0, 255);
-  rect(recieverX, recieverY, 15);
+  fill(0, 0, 128);
+  ellipse(recieverX, recieverY, 20, 15);
+  fill(255);
+  circle(recieverX, recieverY, 10);
   rout();
 }
 
 function ball() {
   fill(150, 75, 0);
-  rect(ballX, ballY, 5, 7.5);
+  ellipse(ballX, ballY, 5, 7.5);
 }
 
 
