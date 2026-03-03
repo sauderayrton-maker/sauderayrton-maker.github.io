@@ -190,7 +190,7 @@ function mousePressed() {
 }
 
 // logic for ball catch
-function moveBall() { // pak math
+function moveBall() { // pak math kinda same as before but i did it this time
   if (ballFlying) {
     ball();
     let ballDeltaX = targetX - ballX; 
