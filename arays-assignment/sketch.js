@@ -5,18 +5,21 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"0
 
-let bgMusic;
-
-function preload() {
-  bgMusic = loadSound("8bt.mp3");
-}
+const ROADWIDTH = 100;
+const LINESPEED = 50; 
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  bgMusic.loop();
 }
 
 function draw() {
   background(220);
-  text('music is playing', 50, 50);
+  fill(0);
+  rect(width/2 - ROADWIDTH, 0, ROADWIDTH * 2, height);
+  roadLines();
+}
+
+function roadLines(y){
+  fill(255, 255, 0);
+  rect(width / LINEWIDTH, height- 60, 20, 60);
 }
