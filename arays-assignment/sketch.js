@@ -59,14 +59,14 @@ function control(){
 
 function mergeLeft(){
   if (cX > width / 2- ROADWIDTH  / 2){
-    cX += HORIZONTALSPEED;
+    cX -= HORIZONTALSPEED;
     console.log(cX);
   }
 }
 
 function mergeRight(){
   if (cX < width / 2+ ROADWIDTH  / 2){
-    cX -= HORIZONTALSPEED;
+    cX += HORIZONTALSPEED;
     console.log(cX);
   }
 }
