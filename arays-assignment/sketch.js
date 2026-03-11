@@ -21,9 +21,8 @@ function setup() {
 }
 
 function draw() {
-  background(220);
-  fill(0);
-  rect(width/2 - ROADWIDTH, 0, ROADWIDTH * 2, height);
+  background(0, 220, 0);
+  drawRoad();
   car();
   roadLines();
   goFast();
@@ -31,20 +30,23 @@ function draw() {
 }
 
 function drawRoad(){
-  
+  fill(0);
+  rect(width/2 - ROADWIDTH, 0, ROADWIDTH * 2, height);
 }
 
 function roadLines(){
   fill(255, 255, 0);
-  rect(width/2 - 10, height, 20, 0);
+  for (let i = -100; i < height + 100; i += 100){
+    rect(width / 2 - 5, i, 10, 50);
+  }
 }
 
 function goFast(){
   if (fast){
-    mergeLeft();
+    mergeRight();
   }
   else{
-    mergeRight();
+    mergeLeft();
   }
 }
 
