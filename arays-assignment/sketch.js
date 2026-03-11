@@ -36,7 +36,7 @@ function drawRoad(){
 
 function roadLines(){
   fill(255, 255, 0);
-  rect(width/2 - 10, height, 20, height);
+  rect(width/2 - 10, height, 20, 0);
 }
 
 function goFast(){
@@ -58,15 +58,15 @@ function control(){
 }
 
 function mergeLeft(){
-  if (cX < width / 2- ROADWIDTH  / 2){
-    cX -= HORIZONTALSPEED;
+  if (cX > width / 2- ROADWIDTH  / 2){
+    cX += HORIZONTALSPEED;
     console.log(cX);
   }
 }
 
 function mergeRight(){
   if (cX < width / 2+ ROADWIDTH  / 2){
-    cX += HORIZONTALSPEED;
+    cX -= HORIZONTALSPEED;
     console.log(cX);
   }
 }
