@@ -36,7 +36,10 @@ function roadLines(){
 
 function goFast(){
   if (fast){
-    mergeRight();
+    mergeLeft();
+  }
+  else{
+    mergeRigth();
   }
 }
 
@@ -49,12 +52,20 @@ function control(){
   }
 }
 
+function mergeLeft(){
+  while (cX < (width / 2)- ROADWIDTH  / 2){
+    cX -= HORIZONTALSPEED
+  }
+}
+
 function mergeRight(){
-  console.log('vroom');
+  while (cX )
 }
 
 function car(){
   fill(255, 0, 0);
   rect(cX, cY, cW, cH);
 }
+
+
 
