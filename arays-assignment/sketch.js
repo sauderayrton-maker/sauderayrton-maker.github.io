@@ -16,6 +16,7 @@ let fast = false;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  noStroke();
   cX = width/2;
   cY = height/2;
 }
@@ -31,7 +32,7 @@ function draw() {
 
 function drawRoad(){
   fill(255);
-  rect(width/2 - ROADWIDTH - ROADWIDTH / 10, 0, ROADWIDTH * 2 + ROADWIDTH + 10, height);
+  rect(width/2 - ROADWIDTH - ROADWIDTH / 10, 0, ROADWIDTH * 2 + ROADWIDTH / 10, height);
   fill(0);
   rect(width/2 - ROADWIDTH, 0, ROADWIDTH * 2, height);
 }
