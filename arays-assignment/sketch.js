@@ -7,6 +7,8 @@
 
 const ROADWIDTH = 100;
 const LINESPEED = 50; 
+let cW = (raodwidth / 2) - 5
+let cH = 75;
 
 let fast = false;
 
@@ -14,8 +16,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   let cX = width;
   let cY = height;
-  let cW = 45; 
-  let cH = 75;
+
 
 }
 
@@ -56,3 +57,4 @@ function car(){
   fill(255, 0, 0);
   rect(cX, cY, cW, cH);
 }
+
