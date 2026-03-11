@@ -21,15 +21,17 @@ function setup() {
 }
 
 function draw() {
-  background(0, 220, 0);
+  background(0, 150, 0);
   drawRoad();
-  car();
   roadLines();
+  car();
   goFast();
   control();
 }
 
 function drawRoad(){
+  fill(255);
+  rect(width/2 - ROADWIDTH - ROADWIDTH / 10, 0, ROADWIDTH * 2 + ROADWIDTH + 10, height);
   fill(0);
   rect(width/2 - ROADWIDTH, 0, ROADWIDTH * 2, height);
 }
@@ -43,10 +45,10 @@ function roadLines(){
 
 function goFast(){
   if (fast){
-    mergeRight();
+    mergeLeft();
   }
   else{
-    mergeLeft();
+    mergeRight();
   }
 }
 
@@ -60,14 +62,14 @@ function control(){
 }
 
 function mergeLeft(){
-  if (cX > width / 2- ROADWIDTH  / 2){
+  if (cX > width / 2 - ROADWIDTH  / 2){
     cX -= HORIZONTALSPEED;
     console.log(cX);
   }
 }
 
 function mergeRight(){
-  if (cX < width / 2+ ROADWIDTH  / 2){
+  if (cX < width / 2 + ROADWIDTH  / 2){
     cX += HORIZONTALSPEED;
     console.log(cX);
   }
@@ -75,7 +77,7 @@ function mergeRight(){
 
 function car(){
   fill(255, 0, 0);
-  rect(cX, cY, cW, cH);
+  rect(cX - cW/2, cY - cH/2, cW, cH);
 }
 
 
