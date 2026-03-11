@@ -7,31 +7,36 @@
 
 const ROADWIDTH = 100;
 const LINESPEED = 50; 
-let cW = (raodwidth / 2) - 5
+const HORIZONTALSPEED = 5;
+let cW = ROADWIDTH / 2 - 5;
 let cH = 75;
+let cX, cY;
 
 let fast = false;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  let cX = width;
-  let cY = height;
-
-
+  cX = width/2;
+  cY = height/2;
 }
 
 function draw() {
   background(220);
   fill(0);
   rect(width/2 - ROADWIDTH, 0, ROADWIDTH * 2, height);
+  car();
   roadLines();
-  control();
   goFast();
+  control();
+}
+
+function drawRoad(){
+  
 }
 
 function roadLines(){
   fill(255, 255, 0);
-  rect(width/2, height/2, 20, height);
+  rect(width/2 - 10, height, 20, height);
 }
 
 function goFast(){
@@ -39,7 +44,7 @@ function goFast(){
     mergeLeft();
   }
   else{
-    mergeRigth();
+    mergeRight();
   }
 }
 
@@ -53,13 +58,17 @@ function control(){
 }
 
 function mergeLeft(){
-  while (cX < (width / 2)- ROADWIDTH  / 2){
-    cX -= HORIZONTALSPEED
+  if (cX < width / 2- ROADWIDTH  / 2){
+    cX -= HORIZONTALSPEED;
+    console.log(cX);
   }
 }
 
 function mergeRight(){
-  while (cX )
+  if (cX < width / 2+ ROADWIDTH  / 2){
+    cX += HORIZONTALSPEED;
+    console.log(cX);
+  }
 }
 
 function car(){
