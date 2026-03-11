@@ -6,19 +6,20 @@
 // - describe what you did to take this project "above and beyond"0
 
 const ROADWIDTH = 100;
-const LINESPEED = 50; 
+const LINESPEED = 10; 
 const HORIZONTALSPEED = 5;
 let cW = ROADWIDTH / 2 - 5;
 let cH = 75;
 let cX, cY;
 
 let fast = false;
+let lineLoop = 0;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
-  cX = width/2;
-  cY = height/2;
+  cX = width/2 + ROADWIDTH/2;
+  cY = height - height/4;
 }
 
 function draw() {
@@ -32,7 +33,7 @@ function draw() {
 
 function drawRoad(){
   fill(255);
-  rect(width/2 - ROADWIDTH - ROADWIDTH / 10, 0, ROADWIDTH * 2 + ROADWIDTH / 10, height);
+  rect(width/2 - ROADWIDTH - ROADWIDTH / 10, 0, ROADWIDTH * 2 + 20, height);
   fill(0);
   rect(width/2 - ROADWIDTH, 0, ROADWIDTH * 2, height);
 }
@@ -40,7 +41,18 @@ function drawRoad(){
 function roadLines(){
   fill(255, 255, 0);
   for (let i = -100; i < height + 100; i += 100){
-    rect(width / 2 - 5, i, 10, 50);
+    rect(width / 2 - 5, i + lineLoop, 10, 50);
+  }
+
+  if (fast){
+    lineLoop += LINESPEED * 2;
+  }  
+  else {
+    lineLoop += LINESPEED;
+  }
+
+  if (lineLoop > 100){
+    lineLoop = 0
   }
 }
 
@@ -77,8 +89,17 @@ function mergeRight(){
 }
 
 function car(){
+  fill(200, 0, 0);
+  rect(cX - cW/2, cY - cH/2, cW, cH, 8);
+
   fill(255, 0, 0);
-  rect(cX - cW/2, cY - cH/2, cW, cH);
+  rect(cX - cW/2 + 5, cY - cH/2 + 15, cW - 10, cH - 30, 5);
+
+  fill(50, 50, 80);
+  rect(cX - cW/2 + 7, cY - cH/2 + 20, cW - 14, 15, 2);
+
+  fill(50, 50, 80);
+  rect(cX - cW/2 + 7, cY - cH/2 + 50, cW - 14, 10, 2);
 }
 
 
