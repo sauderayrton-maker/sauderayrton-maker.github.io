@@ -7,7 +7,4 @@
 
 ## assignments
   - [Interactive Scene](Mega-Bowl)
-
-## ai slop
-  - [amazing Browser](liquid-Browser)
-  - [icey vs code theme that you NEED](vsCodeTHEME)
+  - [Arrays Asignment](arays-assignment)
