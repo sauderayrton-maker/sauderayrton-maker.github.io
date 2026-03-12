@@ -5,17 +5,30 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"0
 
+
+//-----CONSTANTS-----//
 const ROADWIDTH = 100;
 const LINESPEED = 10; 
 const HORIZONTALSPEED = 5;
-let cW = ROADWIDTH / 2 - 5;
-let cH = 75;
-let cX, cY;
+const SPEEDLIMIT = 80;
 
+//-----VARIABLES-----//
+let hudX, hudY;
+let hudW = 200;
+let hudH = 350;
+
+let score = 0;
 let fast = false;
 let lineLoop = 0;
 
-// gamestates 
+//-----CAR-----//
+let cW = ROADWIDTH / 2 - 5;
+let cH = 75;
+let cX, cY;
+let topSpeed = 180;
+let currentSpeed = 0;
+
+//----- GAMESTATE VARIABLES-----//
 let gameState = 'startScreen'
 
 function setup() {
@@ -23,9 +36,12 @@ function setup() {
   noStroke();
   cX = width/2 + ROADWIDTH/2;
   cY = height - height/4;
+  hudX = 0.2 * width;
+  hudY = height - 0.5 * height;
 }
 
 function draw() {
+  //----- GAMESTATE LOGIC -----//
   if (gameState === 'startScreen'){
     start();
   }
@@ -40,12 +56,14 @@ function draw() {
   }
 }
 
+ //----- START BUTTON -----//
 function keyPressed() {
   if (keyCode === ENTER && gameState === 'startScreen') {
     gameState = 'play'
   }
 }
 
+//----- MAKES THE ROAD -----//
 function drawRoad(){
   fill(215, 215, 200);
   rect(width/2 - ROADWIDTH - ROADWIDTH / 10, 0, ROADWIDTH * 2 + 20, height);
@@ -53,24 +71,32 @@ function drawRoad(){
   rect(width/2 - ROADWIDTH, 0, ROADWIDTH * 2, height);
 }
 
+//----- MAKES THE ROAD LINES -----//
 function roadLines(){
-  fill(255, 210, 100);
+  fill(255, 210, 100); //yellow
   for (let i = -100; i < height + 100; i += 100){
     rect(width / 2 - 5, i + lineLoop, 10, 50);
   }
 
+  // sets speed - lerp transitions between two numbers smoothly
   if (fast){
     lineLoop += LINESPEED * 2;
+    score += 0.5;
+    currentSpeed = lerp(currentSpeed, topSpeed, 0.05);
   }  
   else {
     lineLoop += LINESPEED;
+    score += 0.1;
+    currentSpeed = lerp(currentSpeed, SPEEDLIMIT, 0.05)
   }
 
+  // starts loop over
   if (lineLoop > 100){
     lineLoop = 0
   }
 }
 
+//----- MERGING SELECTOR -----// 
 function goFast(){
   if (fast){
     mergeLeft();
@@ -80,6 +106,7 @@ function goFast(){
   }
 }
 
+//----- ADDS CAR CONTROL -----//
 function control(){
   if (keyIsDown(32)) {
     fast = true;
@@ -89,20 +116,21 @@ function control(){
   }
 }
 
+//----- LEFT LANE LOGIC -----//
 function mergeLeft(){
   if (cX > width / 2 - ROADWIDTH  / 2){
     cX -= HORIZONTALSPEED;
-    console.log(cX);
   }
 }
 
+//----- RIGHT LANE LOGIC -----//
 function mergeRight(){
   if (cX < width / 2 + ROADWIDTH  / 2){
     cX += HORIZONTALSPEED;
-    console.log(cX);
   }
 }
 
+//----- DRAWS THE PLAYER CAR -----//
 function car(){
   noStroke();
   fill(200, 0, 0);
@@ -118,6 +146,7 @@ function car(){
   rect(cX - cW/2 + 7, cY - cH/2 + 50, cW - 14, 10, 2);
 }
 
+//----- MAKES THE START SCREEN -----//
 function start(){
   background(15, 15, 15);
   strokeWeight(2);
@@ -140,6 +169,7 @@ function start(){
   
 }
 
+// ----- END SCREEN -----//
 function end(){
   background(0);
   fill(255);
@@ -148,9 +178,56 @@ function end(){
   text("game over", width/ 2, height/ 2)
 }
 
+//----- SPEEDOMETER -----//
 function hud(){
   strokeWeight(2);
   stroke(60, 60, 80);
   fill(40, 40, 50, 200);
-  rect(20 - width / 4, height - 170, 300, 150, 20)
+  rect(hudX, hudY, hudW, hudH, 20);
+  noStroke();
+ 
+  textAlign(CENTER);
+ 
+  fill(100, 110, 140);
+  textSize(11);
+  textStyle(BOLD);
+  text("SPEED", hudX + hudW / 2, hudY + 45);
+  textStyle(NORMAL);
+ 
+  if (currentSpeed >= 150) {
+    fill(255, 60, 60);
+  } else if (currentSpeed >= 100) {
+    fill(255, 220, 60);
+  } else {
+    fill(200, 210, 255);
+  }
+  textSize(52);
+  textStyle(BOLD);
+  text(floor(currentSpeed), hudX + hudW / 2, hudY + 115); // floor is just rounding to the lower int
+  textStyle(NORMAL);
+ 
+  fill(100, 110, 140);
+  textSize(11);
+  text("KM/H", hudX + hudW / 2, hudY + 138);
+ 
+  stroke(60, 65, 85);
+  strokeWeight(1);
+  line(hudX + 25, hudY + 160, hudX + hudW - 25, hudY + 160);
+  noStroke();
+ 
+  fill(100, 110, 140);
+  textSize(11);
+  textStyle(BOLD);
+  text("DISTANCE", hudX + hudW / 2, hudY + 195);
+  textStyle(NORMAL);
+ 
+  if (fast) {
+    fill(0, 200, 255);
+  } else {
+    fill(200, 210, 255);
+  }
+  textSize(36);
+  textStyle(BOLD);
+  text(floor(score) + "m", hudX + hudW / 2, hudY + 245);
+  textStyle(NORMAL);
 }
