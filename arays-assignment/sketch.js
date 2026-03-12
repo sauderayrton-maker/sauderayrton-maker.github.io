@@ -15,6 +15,9 @@ let cX, cY;
 let fast = false;
 let lineLoop = 0;
 
+// gamestates 
+let gameState = 'startScreen'
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
@@ -23,23 +26,35 @@ function setup() {
 }
 
 function draw() {
-  background(0, 150, 0);
-  drawRoad();
-  roadLines();
-  car();
-  goFast();
-  control();
+  if (gameState === 'startScreen'){
+    start();
+  }
+  if (gameState === 'play'){
+    background(10, 25, 15);
+    drawRoad();
+    roadLines();
+    car();
+    goFast();
+    control();
+    hud();
+  }
+}
+
+function keyPressed() {
+  if (keyCode === ENTER && gameState === 'startScreen') {
+    gameState = 'play'
+  }
 }
 
 function drawRoad(){
-  fill(255);
+  fill(215, 215, 200);
   rect(width/2 - ROADWIDTH - ROADWIDTH / 10, 0, ROADWIDTH * 2 + 20, height);
   fill(0);
   rect(width/2 - ROADWIDTH, 0, ROADWIDTH * 2, height);
 }
 
 function roadLines(){
-  fill(255, 255, 0);
+  fill(255, 210, 100);
   for (let i = -100; i < height + 100; i += 100){
     rect(width / 2 - 5, i + lineLoop, 10, 50);
   }
@@ -89,6 +104,7 @@ function mergeRight(){
 }
 
 function car(){
+  noStroke();
   fill(200, 0, 0);
   rect(cX - cW/2, cY - cH/2, cW, cH, 8);
 
@@ -102,5 +118,39 @@ function car(){
   rect(cX - cW/2 + 7, cY - cH/2 + 50, cW - 14, 10, 2);
 }
 
+function start(){
+  background(15, 15, 15);
+  strokeWeight(2);
+  stroke(60, 60, 80);
+  fill(40, 40, 50, 200);
+  rect(width / 2 - 250, height / 2 - 150, 500, 300, 20);
+  noStroke();
+  fill(0, 200, 255);
+  textStyle(BOLD)
+  textSize(45);
+  textAlign(CENTER);
+  text("CAR GAME", width / 2, height / 2 - 80);
+  textStyle(normal);
+  fill(220);
+  textSize(22);
+  text("Press Enter to Start", width / 2, height / 2 + 10);
+  fill(150);
+  textSize(18);
+  text("Press Space to Pass", width / 2, height / 2 + 50);
+  
+}
 
+function end(){
+  background(0);
+  fill(255);
+  textAlign(CENTER);
+  textSize(100);
+  text("game over", width/ 2, height/ 2)
+}
 
+function hud(){
+  strokeWeight(2);
+  stroke(60, 60, 80);
+  fill(40, 40, 50, 200);
+  rect(20 - width / 4, height - 170, 300, 150, 20)
+}
