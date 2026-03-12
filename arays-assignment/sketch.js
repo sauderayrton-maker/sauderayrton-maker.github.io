@@ -3,7 +3,7 @@
 // march 6 2026
 //
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"0
+// - describe what you did to take this project "above and beyond"
 
 
 //-----CONSTANTS-----//
@@ -30,7 +30,7 @@ let topSpeed = 181;
 let currentSpeed = 0;
 
 //----- GAMESTATE VARIABLES-----//
-let gameState = 'startScreen'
+let gameState = 'startScreen';
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -57,10 +57,10 @@ function draw() {
   }
 }
 
- //----- START BUTTON -----//
+//----- START BUTTON -----//
 function keyPressed() {
   if (keyCode === ENTER && gameState === 'startScreen') {
-    gameState = 'play'
+    gameState = 'play';
   }
 }
 
@@ -88,12 +88,12 @@ function roadLines(){
   else {
     lineLoop += LINESPEED;
     score += 0.1;
-    currentSpeed = lerp(currentSpeed, SPEEDLIMIT, 0.05)
+    currentSpeed = lerp(currentSpeed, SPEEDLIMIT, 0.05);
   }
 
   // starts loop over
   if (lineLoop > 100){
-    lineLoop = 0
+    lineLoop = 0;
   }
 }
 
@@ -156,7 +156,7 @@ function start(){
   rect(width / 2 - 250, height / 2 - 150, 500, 300, 20);
   noStroke();
   fill(0, 200, 255);
-  textStyle(BOLD)
+  textStyle(BOLD);
   textSize(45);
   textAlign(CENTER);
   text("CAR GAME", width / 2, height / 2 - 80);
@@ -176,30 +176,34 @@ function end(){
   fill(255);
   textAlign(CENTER);
   textSize(100);
-  text("game over", width/ 2, height/ 2)
+  text("game over", width/ 2, height/ 2);
 }
 
-//----- SPEEDOMETER -----//
+//----- HUD -----//
 function hud(){
+//----- BACKING -----//
   strokeWeight(2);
   stroke(60, 60, 80);
   fill(40, 40, 50, 200);
   rect(hudX, hudY, hudW, hudH, 20);
   noStroke();
  
+  //----- SPEEDLABLE -----//
   textAlign(CENTER);
- 
   fill(100, 110, 140);
   textSize(11);
   textStyle(BOLD);
   text("SPEED", hudX + hudW / 2, hudY + 45);
   textStyle(NORMAL);
  
+  //----- COLOURCHANGING -----//
   if (currentSpeed >= 150) {
     fill(255, 60, 60);
-  } else if (currentSpeed >= 100) {
+  } 
+  else if (currentSpeed >= 100) {
     fill(255, 220, 60);
-  } else {
+  } 
+  else {
     fill(200, 210, 255);
   }
   textSize(52);
@@ -224,7 +228,8 @@ function hud(){
  
   if (fast) {
     fill(0, 200, 255);
-  } else {
+  } 
+  else {
     fill(200, 210, 255);
   }
   textSize(36);
