@@ -16,6 +16,7 @@ const SPEEDLIMIT = 80;
 let hudX, hudY;
 let hudW = 200;
 let hudH = 350;
+let trafficArray = [];
 
 let score = 0;
 let fast = false;
@@ -25,7 +26,7 @@ let lineLoop = 0;
 let cW = ROADWIDTH / 2 - 5;
 let cH = 75;
 let cX, cY;
-let topSpeed = 180;
+let topSpeed = 181;
 let currentSpeed = 0;
 
 //----- GAMESTATE VARIABLES-----//
