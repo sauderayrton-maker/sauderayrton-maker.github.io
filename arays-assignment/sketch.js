@@ -14,8 +14,8 @@ const SPEEDLIMIT = 80;
 
 //-----VARIABLES-----//
 let hudX, hudY;
-let hudW = 200;
-let hudH = 350;
+let hudW = 350;
+let hudH = 200;
 let trafficArray = [];
 
 let score = 0;
@@ -37,8 +37,8 @@ function setup() {
   noStroke();
   cX = width/2 + ROADWIDTH/2;
   cY = height - height/4;
-  hudX = 0.2 * width;
-  hudY = height - 0.5 * height;
+  hudX = width / 2 - hudW / 2;
+  hudY = height - 0.2 * height;
 }
 
 function draw() {
@@ -193,7 +193,7 @@ function hud(){
   fill(100, 110, 140);
   textSize(11);
   textStyle(BOLD);
-  text("SPEED", hudX + hudW / 2, hudY + 45);
+  text("SPEED", hudX + hudW / 4, hudY + 45);
   textStyle(NORMAL);
  
   //----- COLOURCHANGING -----//
@@ -206,24 +206,25 @@ function hud(){
   else {
     fill(200, 210, 255);
   }
+
   textSize(52);
   textStyle(BOLD);
-  text(floor(currentSpeed), hudX + hudW / 2, hudY + 115); // floor is just rounding to the lower int
+  text(floor(currentSpeed), hudX + hudW / 4, hudY + hudH / 2); // floor is just rounding to the lower int
   textStyle(NORMAL);
  
   fill(100, 110, 140);
   textSize(11);
-  text("KM/H", hudX + hudW / 2, hudY + 138);
+  text("KM/H", hudX + hudW / 4, hudY + hudH / 3 * 2);
  
-  stroke(60, 65, 85);
-  strokeWeight(1);
-  line(hudX + 25, hudY + 160, hudX + hudW - 25, hudY + 160);
-  noStroke();
+  // stroke(60, 65, 85);
+  // strokeWeight(1);
+  // line(hudX + 25, hudY + 160, hudX + hudW - 25, hudY + 160);
+  // noStroke();
  
   fill(100, 110, 140);
   textSize(11);
   textStyle(BOLD);
-  text("DISTANCE", hudX + hudW / 2, hudY + 195);
+  text("DISTANCE", hudX + hudW - hudW / 4, hudY + 45);
   textStyle(NORMAL);
  
   if (fast) {
@@ -234,6 +235,6 @@ function hud(){
   }
   textSize(36);
   textStyle(BOLD);
-  text(floor(score) + "m", hudX + hudW / 2, hudY + 245);
+  text(floor(score) + "m", hudX + hudW - hudW / 4, hudY + hudH / 2);
   textStyle(NORMAL);
 }
