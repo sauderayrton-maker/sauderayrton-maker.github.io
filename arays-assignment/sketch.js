@@ -32,11 +32,11 @@ let currentSpeed = 0;
 //----- GAMESTATE VARIABLES-----//
 let gameState = 'startScreen';
 
-// function preload() {
-//   engineSound = loadSound('sounds/engine.mp3');
-//   crashSound = loadSound('sounds/crash.mp3');
-//   backgroundMusic = loadSound('sounds/music.mp3');
-// } was not working
+function preload() {
+  engineSound = loadSound('sounds/engine.mp3');
+  crashSound = loadSound('sounds/crash.mp3');
+  backgroundMusic = loadSound('sounds/music.mp3');
+} //was not working
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -50,9 +50,9 @@ function setup() {
 function draw() {
   //----- GAMESTATE LOGIC -----//
   if (gameState === 'startScreen'){
-    // if (!backgroundMusic.isPlaying()) {
-    //   backgroundMusic.loop();
-    // }
+    if (!backgroundMusic.isPlaying()) {
+      backgroundMusic.loop();
+    }
     start();
   }
   if (gameState === 'play'){
