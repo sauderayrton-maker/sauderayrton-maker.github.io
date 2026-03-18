@@ -1,8 +1,47 @@
 html, body {
   margin: 0;
   padding: 0;
+  background: #0f0f0f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
 }
 
 canvas {
   display: block;
 }
+
+#ad-top {
+  width: 728px;
+  height: 90px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  gap: 12px;
+}
+
+#ad-top span { color: #ff9900; font-weight: bold; font-size: 16px; }
+#ad-top small { color: #555; font-size: 10px; }
+
+#ad-bottom {
+  width: 728px;
+  height: 60px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  gap: 16px;
+}
+
+#ad-bottom a { color: #6cf; text-decoration: none; }
+#ad-bottom small { color: #444; font-size: 10px; }

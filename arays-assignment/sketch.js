@@ -32,6 +32,12 @@ let currentSpeed = 0;
 //----- GAMESTATE VARIABLES-----//
 let gameState = 'startScreen';
 
+// function preload() {
+//   engineSound = loadSound('sounds/engine.mp3');
+//   crashSound = loadSound('sounds/crash.mp3');
+//   backgroundMusic = loadSound('sounds/music.mp3');
+// } was not working
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
@@ -44,6 +50,9 @@ function setup() {
 function draw() {
   //----- GAMESTATE LOGIC -----//
   if (gameState === 'startScreen'){
+    // if (!backgroundMusic.isPlaying()) {
+    //   backgroundMusic.loop();
+    // }
     start();
   }
   if (gameState === 'play'){
@@ -51,15 +60,26 @@ function draw() {
     drawRoad();
     roadLines();
     car();
+    spawnBadTraffic();
     goFast();
     control();
     hud();
+  }
+  if (gameState === 'gameOver') {
+    end();
   }
 }
 
 //----- START BUTTON -----//
 function keyPressed() {
   if (keyCode === ENTER && gameState === 'startScreen') {
+    gameState = 'play';
+  }
+  if (keyCode === ENTER && gameState === 'gameOver') {
+    score = 0;
+    currentSpeed = 0;
+    trafficArray = [];
+    cX = width/2 + ROADWIDTH/2;
     gameState = 'play';
   }
 }
@@ -148,35 +168,40 @@ function car(){
 }
 
 //----- MAKES THE START SCREEN -----//
+
 function start(){
   background(15, 15, 15);
-  strokeWeight(2);
-  stroke(60, 60, 80);
-  fill(25, 20, 20, 200);
-  rect(width / 2 - 250, height / 2 - 150, 500, 300, 20);
   noStroke();
-  fill(255, 160, 60);
-  textStyle(BOLD);
-  textSize(45);
   textAlign(CENTER);
-  text("CAR GAME", width / 2, height / 2 - 80);
-  textStyle(normal);
+  textStyle(BOLD);
   fill(255, 160, 60);
-  textSize(22);
-  text("Press Enter to Start", width / 2, height / 2 + 10);
-  fill(255, 160, 60);
-  textSize(18);
-  text("Press Space to Pass", width / 2, height / 2 + 50);
-  
+  textSize(48);
+  text("CAR GAME", width/2, height/2 - 40);
+  textStyle(NORMAL);
+  fill(160, 160, 160);
+  textSize(16);
+  text("hold space to pass", width/2, height/2 + 15);
+  fill(200, 200, 200);
+  textSize(16);
+  text("press enter to start", width/2, height/2 + 45);
 }
 
 // ----- END SCREEN -----//
 function end(){
-  background(0);
-  fill(255);
+  background(15, 15, 15);
+  noStroke();
   textAlign(CENTER);
-  textSize(100);
-  text("game over", width/ 2, height/ 2);
+  textStyle(BOLD);
+  fill(255, 70, 70);
+  textSize(48);
+  text("GAME OVER", width/2, height/2 - 40);
+  textStyle(NORMAL);
+  fill(160, 160, 160);
+  textSize(16);
+  text(floor(score) + "m", width/2, height/2 + 15);
+  fill(200, 200, 200);
+  textSize(16);
+  text("press enter to restart", width/2, height/2 + 45);
 }
 
 //----- HUD -----//
@@ -212,7 +237,7 @@ function hud(){
     fill(120, 220, 255);
   }
 
-  textSize(52);
+  textSize(34);
   textStyle(BOLD);
   text(floor(currentSpeed), hudX + hudW / 4, hudY + hudH / 2); // floor is just rounding to the lower int
   textStyle(NORMAL);
@@ -220,11 +245,6 @@ function hud(){
   fill(100, 110, 140);
   textSize(11);
   text("KM/H", hudX + hudW / 4, hudY + hudH / 3 * 2);
- 
-  // stroke(60, 65, 85);
-  // strokeWeight(1);
-  // line(hudX + 25, hudY + 160, hudX + hudW - 25, hudY + 160);
-  // noStroke();
  
   fill(180, 180, 190);
   textSize(11);
@@ -238,8 +258,57 @@ function hud(){
   else {
     fill(120, 220, 255);
   }
-  textSize(36);
+  textSize(34);
   textStyle(BOLD);
   text(floor(score) + "m", hudX + hudW - hudW / 4, hudY + hudH / 2);
   textStyle(NORMAL);
+}
+
+function makeBadTaffic(){
+  let lanes = random(0, 100);
+  let startingPoint;
+
+  if (lanes < 50) {
+    startingPoint = width/2 - ROADWIDTH/2;
+  }
+  else{
+    startingPoint = width/2 + ROADWIDTH/2;
+  }
+
+  let badDrivers = {
+    x: startingPoint,
+    y: -100,
+    speed: random(2, 5),
+    r: random(100, 255),
+    g: random(50, 150),
+    b: random(50, 150),
+  };
+  trafficArray.push(badDrivers);
+}
+
+function spawnBadTraffic() {
+  if (frameCount % 60 === 0) {
+    makeBadTaffic();
+  }
+
+  for (let t of trafficArray){
+    if (fast) {
+        t.y += t.speed + 10; 
+      } 
+      else {
+        t.y += t.speed + 2;
+      }
+  fill(t.r, t.g, t.b);
+  rect(t.x - cW/2, t.y - cH/2, cW, cH, 5);
+
+  fill(25, 35, 45);
+  rect(t.x - cW/2 + 7, t.y - cH/2 + 20, cW - 14, 15, 2);
+
+  fill(25, 35, 45);
+  rect(t.x - cW/2 + 7, t.y - cH/2 + 50, cW - 14, 10, 2);
+
+  if (dist(cX, cY, t.x, t.y) < 60) {
+        gameState = 'gameOver';
+      }
+  }
 }
