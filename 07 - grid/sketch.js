@@ -8,7 +8,7 @@
 
 let theGrid;
 
-const SQUARE_DIM = theGrid.length;
+const SQUARE_DIM = 10;
 let cellSize;
 
 function setup() {
