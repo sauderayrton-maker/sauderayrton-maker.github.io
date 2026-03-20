@@ -15,7 +15,8 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   if (width < height) {
     cellSize = width / SQUARE_DIM;
-  } else {
+  }
+  else {
     cellSize = height / SQUARE_DIM;
   }
   theGrid = generateRandomGrid(SQUARE_DIM, SQUARE_DIM);
@@ -50,7 +51,8 @@ function mouseClicked() {
 function toggleCell(x, y) {
   if (theGrid[y][x] === 1) {
     theGrid[y][x] = 0;
-  } else {
+  }
+  else {
     theGrid[y][x] = 1;
   }
 }
@@ -62,7 +64,8 @@ function generateRandomGrid(cols, rows) {
     for (let x = 0; x < cols; x++) {
       if (random(100) < 50) {
         newGrid[y].push(0);
-      } else {
+      } 
+      else {
         newGrid[y].push(1);
       }
     }
