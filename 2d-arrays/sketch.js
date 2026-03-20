@@ -1,4 +1,4 @@
-// 2d arrays assignment
+// Battle Tanks
 
 let grid;
 const GRIDBOX = 10;
