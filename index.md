@@ -8,6 +8,7 @@
   - [generative Art](05- demo-generative art)
   - [perlin noise](06 - perlinnoise demo)
   - [grid](07-grid)
+  - [Game of Life](09-gameoflife)
 
 ## assignments
   - [Interactive Scene](Mega-Bowl)
