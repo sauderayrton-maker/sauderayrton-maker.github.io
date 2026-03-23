@@ -83,4 +83,5 @@ function emptyGrid(cols, rows) {
   }
   return newGrid;
   console.log("whatcha burger");
+  //bnlahhh
 }
