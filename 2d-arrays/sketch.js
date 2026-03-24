@@ -1,22 +1,65 @@
-// Battle Tanks
+// rect grid
 
+const cellSize = 100;
+let inside;
 let grid;
-const GRIDBOX = 10;
-let gridSize;
+let rows, cols;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  checkTheSize();
+  rows = floor(height / cellSize);
+  cols = floor(width / cellSize);
+  inside = ((rows - 2) * (cols - 2)) / 3;
+  grid = outsideWall(cols, rows);
+  grid = insideWall(cols, rows);
 }
 
 function draw() {
   background(220);
+  displayGrid();
 }
 
-function checkTheSize() {
-  if (width > height) {
-    gridSize = width / GRIDBOX;
-  } else {
-    gridSize = height / GRIDBOX;
+function displayGrid() {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (grid[y][x] === 0) {
+        fill("white");
+      } else {
+        fill("black");
+      }
+      square(x * cellSize, y * cellSize, cellSize);
+    }
   }
+}
+
+function outsideWall(cols, rows) {
+  let newGrid = [];
+  for (let y = 0; y < rows; y++) {
+    newGrid.push([]);
+    for (let x = 0; x < cols; x++) {
+      if (x === 0 || x === cols - 1 || y === 0 || y === rows - 1) {
+        newGrid[y].push(1);
+      } else {
+        newGrid[y].push(0);
+      }
+    }
+  }
+  return newGrid;
+}
+
+function insideWall(cols, rows) {
+  let newGrid = [];
+  for (let i = 0; i <= inside; i++) {
+    for (let y = 1; y < rows - 2; y++) {
+      newGrid.push([]);
+      for (let x = 1; x < rows - 2; x++) {
+        if (random(100) > 50) {
+          newGrid[y].push(1);
+        } else {
+          newGrid[y].push(0);
+        }
+      }
+    }
+  }
+  return newGrid;
 }
