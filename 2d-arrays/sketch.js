@@ -6,8 +6,6 @@
 // - the gratest animations of all time mixed with a soundtrack that would make a grown kid cry all preloaded ofc textures never seen before to such quality
 // sound effects making realism a understatement amd to top it all off the best online support simce sliced bread
 
-const { SoundLoop } = require("../../../../../.vscode/extensions/wmcicompsci.cs30-p5-1.9.3/p5types");
-
 const cellSize = 50;
 let inside;
 let grid;
@@ -25,7 +23,7 @@ function preload() {
   wall = loadImage("brick.png");
   ground = loadImage("grass.png");
   boom = loadImage("fireball.jpg");
-  music = loadSound("music.mp3");
+  beat = loadSound("music.mp3");
 }
 
 function setup() {
@@ -36,7 +34,7 @@ function setup() {
   inside = ((rows - 2) * (cols - 2)) / 3;
   grid = outsideWall(cols, rows);
   insideWall(cols, rows);
-  music.loop();
+  beat.loop();
 }
 
 function draw() {
