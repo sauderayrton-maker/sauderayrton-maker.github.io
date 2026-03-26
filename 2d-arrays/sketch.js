@@ -49,7 +49,6 @@ function outsideWall(cols, rows) {
 
 function insideWall(cols, rows) {
     for (let y = 1; y < rows - 1; y++) {
-      newGrid.push([]);
       for (let x = 1; x < cols - 1; x++) {
         if (random(100) > 50) {
           grid[y][x] = 1;
