@@ -34,12 +34,17 @@ function setup() {
   inside = ((rows - 2) * (cols - 2)) / 3;
   grid = outsideWall(cols, rows);
   insideWall(cols, rows);
-  beat.loop();
 }
 
 function draw() {
   background(220);
   displayGrid();
+}
+
+function mousePressed() {
+  if (!beat.isPlaying()) {
+    beat.loop();
+  }
 }
 
 function displayGrid() {
