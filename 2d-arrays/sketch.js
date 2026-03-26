@@ -1,6 +1,6 @@
 // rect grid
 
-const cellSize = 10;
+const cellSize = 50;
 let inside;
 let grid;
 let rows, cols;
@@ -44,7 +44,6 @@ function outsideWall(cols, rows) {
       }
     }
   }
-  return newGrid;
 }
 
 function insideWall(cols, rows) {
