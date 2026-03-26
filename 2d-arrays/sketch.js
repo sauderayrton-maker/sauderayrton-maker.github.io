@@ -49,13 +49,15 @@ function outsideWall(cols, rows) {
 
 function insideWall(cols, rows) {
   let newGrid = [];
-  for (let y = 1; y < rows - 1; y++) {
-    newGrid.push([]);
-    for (let x = 1; x < cols - 1; x++) {
-      if (random(100) > 50) {
-        newGrid[y][x].push(1);
-      } else {
-        newGrid[y][x].push(0);
+  for (let wallNum = 0; wallNum <= inside; wallNum++){
+    for (let y = 1; y < rows - 1; y++) {
+      newGrid.push([]);
+      for (let x = 1; x < cols - 1; x++) {
+        if (random(100) > 50) {
+          newGrid[y][x] = 1;
+        } else {
+          newGrid[y][x] = 0;
+        }
       }
     }
   }
