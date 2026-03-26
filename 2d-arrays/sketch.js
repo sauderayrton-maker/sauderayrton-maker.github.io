@@ -43,10 +43,10 @@ function displayGrid() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       if (grid[y][x] === 0) {
-        image(ground, x * cellSize, y * cellSize, cellSize);
+        image(ground, x * cellSize, y * cellSize, cellSize, cellSize);
       }
       if (grid[y][x] === 1) {
-        image(wall, x * cellSize, y * cellSize, cellSize);
+        image(wall, x * cellSize, y * cellSize, cellSize, cellSize);
       }
     }
   }
