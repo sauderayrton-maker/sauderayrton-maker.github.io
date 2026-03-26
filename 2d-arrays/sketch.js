@@ -1,6 +1,6 @@
 // rect grid
 
-const cellSize = 100;
+const cellSize = 10;
 let inside;
 let grid;
 let rows, cols;
