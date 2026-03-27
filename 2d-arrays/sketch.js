@@ -11,13 +11,16 @@ let inside;
 let grid;
 let rows, cols;
 let player = {
-  x: 0,
-  y: 0,
+  x: 1,
+  y: 1,
 };
 let wall;
 let ground;
 let boom;
 let beat;
+let unblocked = 0;
+let blocked = 1;
+let facingNorth, facingSouth, facingEast, facingWest;
 
 function preload() {
   wall = loadImage("brick.png");
@@ -27,6 +30,7 @@ function preload() {
 }
 
 function setup() {
+  facingWest = true;
   noStroke();
   createCanvas(windowWidth, windowHeight);
   rows = floor(height / cellSize);
@@ -50,10 +54,10 @@ function mousePressed() {
 function displayGrid() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      if (grid[y][x] === 0) {
+      if (grid[y][x] === unblocked) {
         image(ground, x * cellSize, y * cellSize, cellSize, cellSize);
       }
-      if (grid[y][x] === 1) {
+      if (grid[y][x] === blocked) {
         image(wall, x * cellSize, y * cellSize, cellSize, cellSize);
       }
     }
@@ -66,9 +70,9 @@ function outsideWall(cols, rows) {
     newGrid.push([]);
     for (let x = 0; x < cols; x++) {
       if (x === 0 || x === cols - 1 || y === 0 || y === rows - 1) {
-        newGrid[y].push(1);
+        newGrid[y].push(blocked);
       } else {
-        newGrid[y].push(0);
+        newGrid[y].push(unblocked);
       }
     }
   }
@@ -79,10 +83,97 @@ function insideWall(cols, rows) {
   for (let y = 1; y < rows - 1; y++) {
     for (let x = 1; x < cols - 1; x++) {
       if (random(100) > 50) {
-        grid[y][x] = 1;
+        grid[y][x] = blocked;
       } else {
-        grid[y][x] = 0;
+        grid[y][x] = unblocked;
       }
     }
+  }
+}
+
+function keyPressed() {
+  if (key === "w") {
+    forward(player.x, player.y);
+  }
+  if (key === "a") {
+    rotateLeft();
+  }
+  if (key === "d") {
+    rotateRight();
+  }
+  if (key === "s") {
+    back(player.x, player.y);
+  }
+}
+
+function rotateLeft() {
+  if (facingNorth) {
+    facingNorth = false;
+    facingWest = true;
+  } else if (facingWest) {
+    facingWest = false;
+    facingSouth = true;
+  } else if (facingSouth) {
+    facingSouth = false;
+    facingEast = true;
+  } else {
+    facingEast = false;
+    facingNorth = true;
+  }
+}
+
+function rotateRight() {
+  if (facingNorth) {
+    facingNorth = false;
+    facingEast = true;
+  } else if (facingEast) {
+    facingEast = false;
+    facingSouth = true;
+  } else if (facingSouth) {
+    facingSouth = false;
+    facingWest = true;
+  } else {
+    facingWest = false;
+    facingNorth = true;
+  }
+}
+
+function forward(x, y) {
+  let nextX = player.x;
+  let nextY = player.y;
+
+  if (facingNorth) {
+    nextY -= 1;
+  } else if (facingSouth) {
+    nextY += 1;
+  } else if (facingWest) {
+    nextX -= 1;
+  } else {
+    nextX += 1;
+  }
+
+  if (grid[nextY][nextX] === unblocked) {
+    player.x = nextX;
+    player.y = nextY;
+  }
+}
+
+function back(x, y) {
+  let nextX = player.x;
+  let nextY = player.y;
+
+  if (facingNorth) {
+    nextY += 1;
+  } else if (facingSouth) {
+    nextY -= 1;
+  } else if (facingWest) {
+    nextX += 1;
+  } else {
+    nextX -= 1;
+  }
+
+  if (grid[nextY][nextX] === unblocked) {
+    player.x = nextX;
+    player.y = nextY;
   }
 }
