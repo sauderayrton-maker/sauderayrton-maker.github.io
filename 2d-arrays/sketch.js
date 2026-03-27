@@ -43,6 +43,7 @@ function setup() {
 function draw() {
   background(220);
   displayGrid();
+  drawPlayer(player.x, player.y);
 }
 
 function mousePressed() {
@@ -176,4 +177,8 @@ function back(x, y) {
     player.x = nextX;
     player.y = nextY;
   }
+}
+
+function drawPlayer(x, y) {
+  circle(x, y, cellSize / 2);
 }
