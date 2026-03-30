@@ -43,7 +43,7 @@ function setup() {
 function draw() {
   background(220);
   displayGrid();
-  drawPlayer(player.x, player.y);
+  drawPlayer(player.x * cellSize, player.y* cellSize);
 }
 
 function mousePressed() {
