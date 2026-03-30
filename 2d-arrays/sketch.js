@@ -4,7 +4,7 @@
 //
 // Extra for Experts:
 // - the gratest animations of all time mixed with a soundtrack that would make a grown kid cry all preloaded ofc textures never seen before to such quality
-// sound effects making realism a understatement amd to top it all off the best online support simce sliced bread
+// sound effects making realism a understatement and to top it all off the best online support since sliced bread
 
 // varriables
 const cellSize = 50;
@@ -23,7 +23,6 @@ let unblocked = 0;
 let blocked = 1;
 let facingNorth, facingSouth, facingEast, facingWest;
 
-// setup graphics and music/sounds
 function preload() {
   wall = loadImage("brick.png");
   ground = loadImage("grass.png");
@@ -40,23 +39,21 @@ function setup() {
   inside = ((rows - 2) * (cols - 2)) / 3;
   grid = outsideWall(cols, rows);
   insideWall(cols, rows);
+  spawnInGreen();
 }
 
 function draw() {
   background(220);
   displayGrid();
-  spawnInGreen();
   drawPlayer(player.x * cellSize, player.y * cellSize);
 }
 
-// controls
 function mousePressed() {
   if (!beat.isPlaying()) {
     beat.loop();
   }
 }
 
-//makes the grid
 function displayGrid() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
@@ -70,7 +67,6 @@ function displayGrid() {
   }
 }
 
-//makes a barier arround
 function outsideWall(cols, rows) {
   let newGrid = [];
   for (let y = 0; y < rows; y++) {
@@ -100,7 +96,7 @@ function insideWall(cols, rows) {
 
 function keyPressed() {
   if (key === "w") {
-    forward(player.x, player.y);
+    forward();
   }
   if (key === "a") {
     rotateLeft();
@@ -109,7 +105,7 @@ function keyPressed() {
     rotateRight();
   }
   if (key === "s") {
-    back(player.x, player.y);
+    back();
   }
 }
 
@@ -145,59 +141,78 @@ function rotateRight() {
   }
 }
 
-function forward(x, y) {
+function forward() {
   let nextX = player.x;
   let nextY = player.y;
-
   if (facingNorth) {
     nextY -= 1;
   } else if (facingSouth) {
     nextY += 1;
   } else if (facingWest) {
     nextX -= 1;
-  } else {
+  } else if (facingEast) {
     nextX += 1;
   }
-
-  if (grid[nextY][nextX] === unblocked) {
+  if (grid[nextY] && grid[nextY][nextX] === unblocked) {
     player.x = nextX;
     player.y = nextY;
   }
 }
 
-function back(x, y) {
+function back() {
   let nextX = player.x;
   let nextY = player.y;
-
   if (facingNorth) {
     nextY += 1;
   } else if (facingSouth) {
     nextY -= 1;
   } else if (facingWest) {
     nextX += 1;
-  } else {
+  } else if (facingEast) {
     nextX -= 1;
   }
-
-  if (grid[nextY][nextX] === unblocked) {
+  if (grid[nextY] && grid[nextY][nextX] === unblocked) {
+    // gemini pseudocode
     player.x = nextX;
     player.y = nextY;
   }
 }
 
 function drawPlayer(x, y) {
-  circle(x - cellSize / 2, y - cellSize / 2, cellSize);
+  let cx = x + cellSize / 2;
+  let cy = y + cellSize / 2;
+  let angle = 0;
+  if (facingNorth) {
+    angle = -HALF_PI; //google search
+  } else if (facingSouth) {
+    angle = HALF_PI;
+  } else if (facingWest) {
+    angle = PI;
+  } else if (facingEast) {
+    angle = 0;
+  }
+  push(); //ai drew du tank
+  translate(cx, cy);
+  rotate(angle);
+  fill(40);
+  rect(-20, -18, 40, 10, 3);
+  rect(-20, 8, 40, 10, 3);
+  fill(80, 110, 60);
+  rect(-15, -13, 30, 26, 4);
+  fill(65, 95, 50);
+  ellipse(0, 0, 22, 22);
+  fill(50, 75, 40);
+  rect(0, -4, 25, 8, 2);
+  pop();
 }
 
 function spawnInGreen() {
   let spawned = false;
 
-  // Keep picking random coordinates until we find a grass tile
   while (!spawned) {
     let randX = floor(random(1, cols - 1));
     let randY = floor(random(1, rows - 1));
 
-    // If the spot is unblocked, place the player there and stop the loop
     if (grid[randY][randX] === unblocked) {
       player.x = randX;
       player.y = randY;
