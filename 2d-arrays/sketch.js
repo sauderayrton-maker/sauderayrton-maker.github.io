@@ -6,6 +6,7 @@
 // - the gratest animations of all time mixed with a soundtrack that would make a grown kid cry all preloaded ofc textures never seen before to such quality
 // sound effects making realism a understatement amd to top it all off the best online support simce sliced bread
 
+// varriables
 const cellSize = 50;
 let inside;
 let grid;
@@ -22,6 +23,7 @@ let unblocked = 0;
 let blocked = 1;
 let facingNorth, facingSouth, facingEast, facingWest;
 
+// setup graphics and music/sounds
 function preload() {
   wall = loadImage("brick.png");
   ground = loadImage("grass.png");
@@ -43,15 +45,18 @@ function setup() {
 function draw() {
   background(220);
   displayGrid();
-  drawPlayer(player.x * cellSize, player.y* cellSize);
+  spawnInGreen();
+  drawPlayer(player.x * cellSize, player.y * cellSize);
 }
 
+// controls
 function mousePressed() {
   if (!beat.isPlaying()) {
     beat.loop();
   }
 }
 
+//makes the grid
 function displayGrid() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
@@ -65,6 +70,7 @@ function displayGrid() {
   }
 }
 
+//makes a barier arround
 function outsideWall(cols, rows) {
   let newGrid = [];
   for (let y = 0; y < rows; y++) {
@@ -180,5 +186,22 @@ function back(x, y) {
 }
 
 function drawPlayer(x, y) {
-  circle(x, y, cellSize / 2);
+  circle(x - cellSize / 2, y - cellSize / 2, cellSize);
+}
+
+function spawnInGreen() {
+  let spawned = false;
+
+  // Keep picking random coordinates until we find a grass tile
+  while (!spawned) {
+    let randX = floor(random(1, cols - 1));
+    let randY = floor(random(1, rows - 1));
+
+    // If the spot is unblocked, place the player there and stop the loop
+    if (grid[randY][randX] === unblocked) {
+      player.x = randX;
+      player.y = randY;
+      spawned = true;
+    }
+  }
 }
