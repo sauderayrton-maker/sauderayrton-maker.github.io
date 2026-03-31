@@ -171,8 +171,8 @@ function back() {
   } else if (facingEast) {
     nextX -= 1;
   }
+  // gemini pseudocode
   if (grid[nextY] && grid[nextY][nextX] === unblocked) {
-    // gemini pseudocode
     player.x = nextX;
     player.y = nextY;
   }
