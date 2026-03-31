@@ -8,6 +8,8 @@
 
 // varriables
 const cellSize = 50;
+let bulletX, bulletY;
+let shooting = false;
 let inside;
 let grid;
 let rows, cols;
@@ -106,6 +108,9 @@ function keyPressed() {
   }
   if (key === "s") {
     back();
+  }
+  if (key === " ") {
+    shoot();
   }
 }
 
@@ -218,5 +223,38 @@ function spawnInGreen() {
       player.y = randY;
       spawned = true;
     }
+  }
+}
+
+// shooting
+function shoot() {
+  shooting = true;
+  bulletX = player.x;
+  bulletY = player.y;
+}
+
+function shell() {
+  if (shooting) {
+    if (facingEast) {
+      bulletX++;
+    }
+    if (facingWest) {
+      bulletX--;
+    }
+    if (facingNorth) {
+      bulletY--;
+    }
+    if (facingSouth) {
+      bulletY++;
+    }
+  }
+}
+
+function detonate() {
+  if (shooting) {
+    if (grid[bulletY] && grid[bulletY][bulletX] === blocked) {
+      grid[bulletY][bulletX] = unblocked;
+    }
+    shooting = false;
   }
 }

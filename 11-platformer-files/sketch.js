@@ -17,7 +17,7 @@ let lines;
 
 function preload() {
   //load level data
-  levelToLoad = "assets/levels/0.txt";
+  levelToLoad = "assets/levels/1.txt";
   lines = loadStrings(levelToLoad);
 
   //load background
@@ -71,23 +71,17 @@ function display() {
 function showTile(location, x, y) {
   if (location === "#") {
     image(platform, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-  }
-  else if (location === "C") {
+  } else if (location === "C") {
     image(coin, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-  }
-  else if (location === "B") {
+  } else if (location === "B") {
     image(exclamationBox, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-  }
-  else if (location === "F") {
+  } else if (location === "F") {
     image(fly, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-  }
-  else if (location === "P") {
+  } else if (location === "P") {
     image(p1, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-  }
-  else if (location === "S") {
+  } else if (location === "S") {
     image(slime, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-  }
-  else {
+  } else {
     image(empty, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
   }
 }
