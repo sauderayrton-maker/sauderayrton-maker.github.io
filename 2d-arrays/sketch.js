@@ -8,6 +8,7 @@
 
 // varriables
 const cellSize = 50;
+let gameState;
 let bulletX, bulletY;
 let shooting = false;
 let inside;
@@ -33,6 +34,7 @@ function preload() {
 }
 
 function setup() {
+  gameState = "startScreen";
   facingWest = true;
   noStroke();
   createCanvas(windowWidth, windowHeight);
@@ -256,5 +258,10 @@ function detonate() {
       grid[bulletY][bulletX] = unblocked;
     }
     shooting = false;
+  }
+}
+
+function gameStart() {
+  if (gameState === "playing") {
   }
 }
