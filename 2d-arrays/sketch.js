@@ -25,6 +25,32 @@ let beat;
 let unblocked = 0;
 let blocked = 1;
 let facingNorth, facingSouth, facingEast, facingWest;
+let bombs = [];
+class Bomb {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = cellSize;
+    this.visable = true;
+    this.exploded = false;
+    this.blastRadius = 1;
+  }
+
+  explode() {
+    this.visable = false;
+    this.exploded = true;
+    console.log(this.visable);
+  }
+
+  draw() {
+    if (this.visable) {
+      fill(255, 0, 0);
+      ellipse(this.x, this.y, this.size * this.blastRadius);
+      console.log(this.x, this.y);
+    }
+  }
+  breakWalls() {}
+}
 
 function preload() {
   wall = loadImage("brick.png");
@@ -112,7 +138,8 @@ function keyPressed() {
     back();
   }
   if (key === " ") {
-    shoot();
+    placeBomb();
+    console.log("boom");
   }
 }
 
@@ -228,37 +255,9 @@ function spawnInGreen() {
   }
 }
 
-// shooting
-function shoot() {
-  shooting = true;
-  bulletX = player.x;
-  bulletY = player.y;
-}
-
-function shell() {
-  if (shooting) {
-    if (facingEast) {
-      bulletX++;
-    }
-    if (facingWest) {
-      bulletX--;
-    }
-    if (facingNorth) {
-      bulletY--;
-    }
-    if (facingSouth) {
-      bulletY++;
-    }
-  }
-}
-
-function detonate() {
-  if (shooting) {
-    if (grid[bulletY] && grid[bulletY][bulletX] === blocked) {
-      grid[bulletY][bulletX] = unblocked;
-    }
-    shooting = false;
-  }
+function placeBomb() {
+  let bomb = new Bomb(player.x, player.y, cellSize);
+  bomb.draw();
 }
 
 function gameStart() {
