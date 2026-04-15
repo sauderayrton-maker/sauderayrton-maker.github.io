@@ -65,3 +65,5 @@ function mousePressed() {
   theGuy.color = color(random(255), random(255), random(255));
   theWalkers.push(theGuy);
 }
+
+//testing a quick push
