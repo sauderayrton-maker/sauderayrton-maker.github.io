@@ -30,25 +30,61 @@ class Bomb {
     this.y = y;
     this.size = cellSize;
     this.exploded = false;
-    this.blastRadius = [
-      [0, 0],
-      [0, 1],
-      [0, -1],
-      [1, 0],
-      [-1, 0],
-    ];
+    this.blastRadius = 1;
     this.timer = 120;
   }
 
   explode() {
     this.exploded = true;
+    grid[this.y][this.x] = 0;
+    for (let i = 1; i <= this.blastRadius; i++) {
+      if (this.x + i < cols) {
+        grid[this.y][this.x + i] = 0;
+      }
+      if (this.x - i >= 0) {
+        grid[this.y][this.x - i] = 0;
+      }
+      if (this.y + i < rows) {
+        grid[this.y + i][this.x] = 0;
+      }
+      if (this.y - i >= 0) {
+        grid[this.y - i][this.x] = 0;
+      }
+    }
     console.log("booom");
   }
 
   draw() {
-    fill(255, 0, 0);
-    ellipse(this.x, this.y, this.size * this.blastRadius);
-    console.log(this.x, this.y);
+    let cx = this.x * cellSize + cellSize / 2;
+    let cy = this.y * cellSize + cellSize / 2;
+    //ai drawn
+    push();
+    translate(cx, cy);
+
+    // Outer shell
+    fill(20);
+    stroke(255, 0, 0); // Red outline
+    strokeWeight(2);
+    ellipse(0, 0, this.size * 0.7);
+
+    // Pulsing center (glows faster as it gets closer to 0)
+    let glow = sin(frameCount * 0.2) * 100 + 155;
+    fill(glow, 0, 0);
+    noStroke();
+    ellipse(0, 0, this.size * 0.3);
+
+    // Simple fuse
+    stroke(150);
+    line(0, -this.size * 0.35, 5, -this.size * 0.5);
+
+    pop();
+  }
+
+  update() {
+    this.timer--;
+    if (this.timer <= 0) {
+      this.explode();
+    }
   }
 }
 
@@ -76,6 +112,7 @@ function draw() {
   background(220);
   displayGrid();
   drawPlayer(player.x * cellSize, player.y * cellSize);
+  displayBombs();
 }
 
 function mousePressed() {
@@ -256,11 +293,22 @@ function spawnInGreen() {
 }
 
 function placeBomb() {
-  let bomb = new Bomb(player.x, player.y, cellSize);
-  bomb.draw();
+  let bomb = new Bomb(player.x, player.y);
+  bombs.push(bomb);
 }
 
 function gameStart() {
   if (gameState === "playing") {
+  }
+}
+
+function displayBombs() {
+  for (let i = 0; i < bombs.length; i++) {
+    bombs[i].draw();
+    if (bombs[i].exploded) {
+      bombs.pop();
+    } else {
+      bombs[i].update();
+    }
   }
 }
