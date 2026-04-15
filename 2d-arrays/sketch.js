@@ -31,9 +31,9 @@ class Bomb {
     this.x = x;
     this.y = y;
     this.size = cellSize;
-    this.visable = true;
     this.exploded = false;
-    this.blastRadius = 1;
+    this.blastRadius = [[0,0], [0,1], [0,-1], [1,0], [-1,0]];
+    this.timer = 120;
   }
 
   explode() {
@@ -43,10 +43,9 @@ class Bomb {
   }
 
   draw() {
-    if (this.visable) {
-      fill(255, 0, 0);
-      ellipse(this.x, this.y, this.size * this.blastRadius);
-      console.log(this.x, this.y);
+    fill(255, 0, 0);
+    ellipse(this.x, this.y, this.size * this.blastRadius);
+    console.log(this.x, this.y);
     }
   }
   breakWalls() {}
