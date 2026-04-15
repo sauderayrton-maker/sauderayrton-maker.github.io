@@ -9,8 +9,6 @@
 // varriables
 const cellSize = 50;
 let gameState;
-let bulletX, bulletY;
-let shooting = false;
 let inside;
 let grid;
 let rows, cols;
@@ -32,23 +30,26 @@ class Bomb {
     this.y = y;
     this.size = cellSize;
     this.exploded = false;
-    this.blastRadius = [[0,0], [0,1], [0,-1], [1,0], [-1,0]];
+    this.blastRadius = [
+      [0, 0],
+      [0, 1],
+      [0, -1],
+      [1, 0],
+      [-1, 0],
+    ];
     this.timer = 120;
   }
 
   explode() {
-    this.visable = false;
     this.exploded = true;
-    console.log(this.visable);
+    console.log("booom");
   }
 
   draw() {
     fill(255, 0, 0);
     ellipse(this.x, this.y, this.size * this.blastRadius);
     console.log(this.x, this.y);
-    }
   }
-  breakWalls() {}
 }
 
 function preload() {

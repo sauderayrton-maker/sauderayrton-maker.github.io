@@ -9,6 +9,8 @@
   - [perlin noise](06 - perlinnoise demo)
   - [grid](07-grid)
   - [Game of Life](09-gameoflife)
+  - [Walker oop](NOWAY)
+  - [13-fireworks](13-fireworks)
 
 ## assignments
   - [Interactive Scene](Mega-Bowl)
