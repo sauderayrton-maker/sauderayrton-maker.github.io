@@ -6,26 +6,30 @@
 // - the gratest animations of all time mixed with a soundtrack that would make a grown kid cry all preloaded ofc textures never seen before to such quality
 // sound effects making realism a understatement and to top it all off the best online support since sliced bread
 
-// varriables
+// ── CONSTANTS ─────────────────────────────────────────────
 const cellSize = 50;
-let gameState;
-let inside;
-let grid;
-let rows, cols;
-let player = {
-  x: 1,
-  y: 1,
-};
-let wall;
-let ground;
-let boom;
-let beat;
-let unblocked = 0;
-let blocked = 1;
-let facingNorth, facingSouth, facingEast, facingWest;
-let bombs = [];
 const BUTTON_WIDTH = 100;
 const BUTTON_HEIGHT = 50;
+const unblocked = 0;
+const blocked = 1;
+
+// ── ASSETS ────────────────────────────────────────────────
+let wall, ground, boom, beat;
+
+// ── GRID ──────────────────────────────────────────────────
+let grid;
+let rows, cols;
+let inside;
+
+// ── PLAYER ────────────────────────────────────────────────
+let player = { x: 1, y: 1 };
+let facingNorth, facingSouth, facingEast, facingWest;
+
+// ── GAME ──────────────────────────────────────────────────
+let gameState;
+let bombs = [];
+
+// ── BOMB CLASS ────────────────────────────────────────────
 class Bomb {
   constructor(x, y) {
     this.x = x;
@@ -56,6 +60,13 @@ class Bomb {
     console.log("booom");
   }
 
+  update() {
+    this.timer--;
+    if (this.timer <= 0) {
+      this.explode();
+    }
+  }
+
   draw() {
     let cx = this.x * cellSize + cellSize / 2;
     let cy = this.y * cellSize + cellSize / 2;
@@ -63,33 +74,23 @@ class Bomb {
     push();
     translate(cx, cy);
 
-    // Outer shell
     fill(20);
-    stroke(255, 0, 0); // Red outline
+    stroke(255, 0, 0);
     strokeWeight(2);
     ellipse(0, 0, this.size * 0.7);
 
-    // Pulsing center (glows faster as it gets closer to 0)
     let glow = sin(frameCount * 0.2) * 100 + 155;
     fill(glow, 0, 0);
     noStroke();
     ellipse(0, 0, this.size * 0.3);
 
-    // Simple fuse
     stroke(150);
     line(0, -this.size * 0.35, 5, -this.size * 0.5);
-
     pop();
-  }
-
-  update() {
-    this.timer--;
-    if (this.timer <= 0) {
-      this.explode();
-    }
   }
 }
 
+// ── PRELOAD / SETUP ───────────────────────────────────────
 function preload() {
   wall = loadImage("brick.png");
   ground = loadImage("grass.png");
@@ -98,18 +99,78 @@ function preload() {
 }
 
 function setup() {
-  gameState = "startScreen";
-  facingWest = true;
-  noStroke();
   createCanvas(windowWidth, windowHeight);
+  noStroke();
   rows = floor(height / cellSize);
   cols = floor(width / cellSize);
   inside = ((rows - 2) * (cols - 2)) / 3;
   grid = outsideWall(cols, rows);
   insideWall(cols, rows);
   spawnInGreen();
+  facingWest = true;
+  gameState = "startScreen";
 }
 
+// ── SCREENS ───────────────────────────────────────────────
+function startScreen() {
+  background(0);
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text("BATTLE TANKS", width / 2, height / 2);
+}
+
+function tutorialScreen() {
+  // placeholder
+}
+
+function gameOverFromSelf() {
+  background(0);
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text("NOT OPTIMAL STRATEGY", width / 2, height / 2);
+}
+
+function gameOverFromEnemy() {
+  background(0);
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text("MY GRANDMA PLAYS BETTER THAN YOU", width / 2, height / 2);
+}
+
+function winnerScreen() {
+  background(0);
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text("YOU WIN", width / 2, height / 2);
+}
+
+// ── BUTTONS ───────────────────────────────────────────────
+function startButtons() {
+  if (gameState === "startScreen") {
+    if (
+      mouseX > width / 2 - BUTTON_WIDTH &&
+      mouseX < width / 2 + BUTTON_WIDTH &&
+      mouseY > height / 2 - BUTTON_HEIGHT &&
+      mouseY < height / 2 + BUTTON_HEIGHT
+    ) {
+      gameState = "playing";
+    }
+    if (
+      mouseX > width / 2 - BUTTON_WIDTH &&
+      mouseX < width / 2 + BUTTON_WIDTH &&
+      mouseY > height / 2 + BUTTON_HEIGHT &&
+      mouseY < height / 2 + 2 * BUTTON_HEIGHT
+    ) {
+      gameState = "tutorial";
+    }
+  }
+}
+
+// ── DRAW / STATE ROUTER ───────────────────────────────────
 function draw() {
   if (gameState === "startScreen") {
     startScreen();
@@ -131,25 +192,123 @@ function draw() {
   }
 }
 
+function play() {
+  background(220);
+  displayGrid();
+  drawPlayer(player.x * cellSize, player.y * cellSize);
+  displayBombs();
+}
+
+// ── INPUT ─────────────────────────────────────────────────
+function keyPressed() {
+  if (key === "w") {
+    forward();
+  }
+  if (key === "a") {
+    rotateLeft();
+  }
+  if (key === "d") {
+    rotateRight();
+  }
+  if (key === "s") {
+    back();
+  }
+  if (key === " ") {
+    placeBomb();
+    console.log("boom");
+  }
+}
+
 function mousePressed() {
   if (!beat.isPlaying()) {
     beat.loop();
   }
+  startButtons();
 }
 
-function displayGrid() {
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      if (grid[y][x] === unblocked) {
-        image(ground, x * cellSize, y * cellSize, cellSize, cellSize);
-      }
-      if (grid[y][x] === blocked) {
-        image(wall, x * cellSize, y * cellSize, cellSize, cellSize);
-      }
-    }
+// ── PLAYER MOVEMENT ───────────────────────────────────────
+function forward() {
+  let nextX = player.x;
+  let nextY = player.y;
+  if (facingNorth) {
+    nextY -= 1;
+  }
+  if (facingSouth) {
+    nextY += 1;
+  }
+  if (facingWest) {
+    nextX -= 1;
+  }
+  if (facingEast) {
+    nextX += 1;
+  }
+  if (grid[nextY] && grid[nextY][nextX] === unblocked) {
+    player.x = nextX;
+    player.y = nextY;
   }
 }
 
+function back() {
+  let nextX = player.x;
+  let nextY = player.y;
+  if (facingNorth) {
+    nextY += 1;
+  }
+  if (facingSouth) {
+    nextY -= 1;
+  }
+  if (facingWest) {
+    nextX += 1;
+  }
+  if (facingEast) {
+    nextX -= 1;
+  }
+  // gemini pseudocode
+  if (grid[nextY] && grid[nextY][nextX] === unblocked) {
+    player.x = nextX;
+    player.y = nextY;
+  }
+}
+
+function rotateLeft() {
+  if (facingNorth) {
+    facingNorth = false;
+    facingWest = true;
+  }
+  if (facingWest) {
+    facingWest = false;
+    facingSouth = true;
+  }
+  if (facingSouth) {
+    facingSouth = false;
+    facingEast = true;
+  }
+  if (facingEast) {
+    facingEast = false;
+    facingNorth = true;
+  }
+}
+
+function rotateRight() {
+  if (facingNorth) {
+    facingNorth = false;
+    facingEast = true;
+  }
+  if (facingEast) {
+    facingEast = false;
+    facingSouth = true;
+  }
+  if (facingSouth) {
+    facingSouth = false;
+    facingWest = true;
+  }
+  if (facingWest) {
+    facingWest = false;
+    facingNorth = true;
+  }
+}
+
+// ── GRID ──────────────────────────────────────────────────
 function outsideWall(cols, rows) {
   let newGrid = [];
   for (let y = 0; y < rows; y++) {
@@ -177,105 +336,52 @@ function insideWall(cols, rows) {
   }
 }
 
-function keyPressed() {
-  if (key === "w") {
-    forward();
-  }
-  if (key === "a") {
-    rotateLeft();
-  }
-  if (key === "d") {
-    rotateRight();
-  }
-  if (key === "s") {
-    back();
-  }
-  if (key === " ") {
-    placeBomb();
-    console.log("boom");
+function displayGrid() {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (grid[y][x] === unblocked) {
+        image(ground, x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+      if (grid[y][x] === blocked) {
+        image(wall, x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+    }
   }
 }
 
-function rotateLeft() {
-  if (facingNorth) {
-    facingNorth = false;
-    facingWest = true;
-  } else if (facingWest) {
-    facingWest = false;
-    facingSouth = true;
-  } else if (facingSouth) {
-    facingSouth = false;
-    facingEast = true;
-  } else {
-    facingEast = false;
-    facingNorth = true;
+// ── BOMBS ─────────────────────────────────────────────────
+function placeBomb() {
+  let bomb = new Bomb(player.x, player.y);
+  bombs.push(bomb);
+}
+
+function displayBombs() {
+  for (let i = 0; i < bombs.length; i++) {
+    bombs[i].draw();
+    if (bombs[i].exploded) {
+      bombs.splice(i, 1);
+      i--;
+    } else {
+      bombs[i].update();
+    }
   }
 }
 
-function rotateRight() {
-  if (facingNorth) {
-    facingNorth = false;
-    facingEast = true;
-  } else if (facingEast) {
-    facingEast = false;
-    facingSouth = true;
-  } else if (facingSouth) {
-    facingSouth = false;
-    facingWest = true;
-  } else {
-    facingWest = false;
-    facingNorth = true;
-  }
-}
-
-function forward() {
-  let nextX = player.x;
-  let nextY = player.y;
-  if (facingNorth) {
-    nextY -= 1;
-  } else if (facingSouth) {
-    nextY += 1;
-  } else if (facingWest) {
-    nextX -= 1;
-  } else if (facingEast) {
-    nextX += 1;
-  }
-  if (grid[nextY] && grid[nextY][nextX] === unblocked) {
-    player.x = nextX;
-    player.y = nextY;
-  }
-}
-
-function back() {
-  let nextX = player.x;
-  let nextY = player.y;
-  if (facingNorth) {
-    nextY += 1;
-  } else if (facingSouth) {
-    nextY -= 1;
-  } else if (facingWest) {
-    nextX += 1;
-  } else if (facingEast) {
-    nextX -= 1;
-  }
-  // gemini pseudocode
-  if (grid[nextY] && grid[nextY][nextX] === unblocked) {
-    player.x = nextX;
-    player.y = nextY;
-  }
-}
-
+// ── PLAYER DRAW ───────────────────────────────────────────
 function drawPlayer(x, y) {
   let cx = x + cellSize / 2;
   let cy = y + cellSize / 2;
   let angle = 0;
   if (facingNorth) {
     angle = -HALF_PI; //google search
-  } else if (facingSouth) {
+  }
+  if (facingSouth) {
     angle = HALF_PI;
-  } else if (facingWest) {
+  }
+  if (facingWest) {
     angle = PI;
-  } else if (facingEast) {
+  }
+  if (facingEast) {
     angle = 0;
   }
   push(); //ai drew du tank
@@ -295,97 +401,13 @@ function drawPlayer(x, y) {
 
 function spawnInGreen() {
   let spawned = false;
-
   while (!spawned) {
     let randX = floor(random(1, cols - 1));
     let randY = floor(random(1, rows - 1));
-
     if (grid[randY][randX] === unblocked) {
       player.x = randX;
       player.y = randY;
       spawned = true;
     }
   }
-}
-
-function placeBomb() {
-  let bomb = new Bomb(player.x, player.y);
-  bombs.push(bomb);
-}
-
-function gameStart() {
-  if (gameState === "playing") {
-  }
-}
-
-function displayBombs() {
-  for (let i = 0; i < bombs.length; i++) {
-    bombs[i].draw();
-    if (bombs[i].exploded) {
-      bombs.splice(i, 1);
-      i--;
-    } else {
-      bombs[i].update();
-    }
-  }
-}
-
-function startScreen() {
-  background(0);
-  fill(255);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text("BATTLE TANKS", width / 2, height / 2);
-}
-
-function gameOverFromSelf() {
-  background(0);
-  fill(255);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text("NOT OPTIMAL STRATEGY", width / 2, height / 2);
-}
-
-function gameOverFromEnemy() {
-  background(0);
-  fill(255);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text("MY GRANDMA PLAYS BETTER THAN YOU", width / 2, height / 2);
-}
-
-function winnerScreen() {
-  background(0);
-  fill(255);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text("YOU WIN", width / 2, height / 2);
-}
-
-function startButtons() {
-  if (gameState === "startScreen") {
-    if (
-      mouseX > width / 2 - BUTTON_WIDTH &&
-      mouseX < width / 2 + BUTTON_WIDTH &&
-      mouseY > height / 2 - BUTTON_HEIGHT &&
-      mouseY < height / 2 + BUTTON_HEIGHT
-    ) {
-      gameState = "playing";
-    }
-    if (
-      mouseX > width / 2 - BUTTON_WIDTH &&
-      mouseX < width / 2 + BUTTON_WIDTH &&
-      mouseY > height / 2 + BUTTON_HEIGHT &&
-      mouseY < height / 2 + 2 * BUTTON_HEIGHT
-    ) {
-      gameState = "tutorial";
-    }
-  }
-}
-
-function play() {
-  background(220);
-  displayGrid();
-  drawPlayer(player.x * cellSize, player.y * cellSize);
-  displayBombs();
 }
