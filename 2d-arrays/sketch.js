@@ -4,15 +4,17 @@
 //
 // Extra for Experts:
 // - the gratest animations of all time mixed with a soundtrack that would make a grown kid cry all preloaded ofc textures never seen before to such quality
-// sound effects making realism a understatement and to top it all off the best online support since sliced bread
+// sound effects making realism a understatement and to top it all off the best ai enemy system since sliced bread
+//
 // used ai to comment and organize my code before and after were committed
 
 // ── CONSTANTS ─────────────────────────────────────────────
 const cellSize = 50;
 const BUTTON_WIDTH = 100;
 const BUTTON_HEIGHT = 50;
-const unblocked = 0;
-const blocked = 1;
+const GRASS = 0;
+const BRICK = 1;
+const STEEL = 2;
 
 // ── ASSETS ────────────────────────────────────────────────
 let wall, ground, boom, beat;
@@ -260,7 +262,7 @@ function forward() {
   if (facingEast) {
     nextX += 1;
   }
-  if (grid[nextY] && grid[nextY][nextX] === unblocked) {
+  if (grid[nextY] && grid[nextY][nextX] === GRASS) {
     player.x = nextX;
     player.y = nextY;
   }
@@ -282,7 +284,7 @@ function back() {
     nextX -= 1;
   }
   // gemini pseudocode
-  if (grid[nextY] && grid[nextY][nextX] === unblocked) {
+  if (grid[nextY] && grid[nextY][nextX] === GRASS) {
     player.x = nextX;
     player.y = nextY;
   }
@@ -327,9 +329,9 @@ function outsideWall(cols, rows) {
     newGrid.push([]);
     for (let x = 0; x < cols; x++) {
       if (x === 0 || x === cols - 1 || y === 0 || y === rows - 1) {
-        newGrid[y].push(blocked);
+        newGrid[y].push(STEEL);
       } else {
-        newGrid[y].push(unblocked);
+        newGrid[y].push(GRASS);
       }
     }
   }
@@ -340,9 +342,9 @@ function insideWall(cols, rows) {
   for (let y = 1; y < rows - 1; y++) {
     for (let x = 1; x < cols - 1; x++) {
       if (random(100) > 50) {
-        grid[y][x] = blocked;
+        grid[y][x] = BRICK;
       } else {
-        grid[y][x] = unblocked;
+        grid[y][x] = GRASS;
       }
     }
   }
@@ -351,10 +353,10 @@ function insideWall(cols, rows) {
 function displayGrid() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      if (grid[y][x] === unblocked) {
+      if (grid[y][x] === GRASS) {
         image(ground, x * cellSize, y * cellSize, cellSize, cellSize);
       }
-      if (grid[y][x] === blocked) {
+      if (grid[y][x] === BRICK) {
         image(wall, x * cellSize, y * cellSize, cellSize, cellSize);
       }
     }
@@ -416,7 +418,7 @@ function spawnInGreen() {
   while (!spawned) {
     let randX = floor(random(1, cols - 1));
     let randY = floor(random(1, rows - 1));
-    if (grid[randY][randX] === unblocked) {
+    if (grid[randY][randX] === GRASS) {
       player.x = randX;
       player.y = randY;
       spawned = true;
