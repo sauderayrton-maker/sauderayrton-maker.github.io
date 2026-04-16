@@ -24,6 +24,12 @@ class Particle {
     this.y += this.dy;
   }
 
+  clean() {
+    if (this.opacity <= 0) {
+      theFireworks.splice(theFireworks.indexOf(this), 1);
+    }
+  }
+
   display() {
     noStroke();
     fill(this.r, this.g, this.b, this.opacity);
@@ -32,7 +38,7 @@ class Particle {
 }
 
 let theFireworks = [];
-const NUM_FIREWORKS = 1000;
+const NUM_FIREWORKS = 100;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -43,6 +49,7 @@ function draw() {
   for (let firework of theFireworks) {
     firework.update();
     firework.display();
+    firework.clean();
   }
 }
 
