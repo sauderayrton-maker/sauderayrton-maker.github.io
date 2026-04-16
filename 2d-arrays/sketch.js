@@ -24,6 +24,8 @@ let unblocked = 0;
 let blocked = 1;
 let facingNorth, facingSouth, facingEast, facingWest;
 let bombs = [];
+const BUTTON_WIDTH = 100;
+const BUTTON_HEIGHT = 50;
 class Bomb {
   constructor(x, y) {
     this.x = x;
@@ -109,10 +111,24 @@ function setup() {
 }
 
 function draw() {
-  background(220);
-  displayGrid();
-  drawPlayer(player.x * cellSize, player.y * cellSize);
-  displayBombs();
+  if (gameState === "startScreen") {
+    startScreen();
+  }
+  if (gameState === "tutorial") {
+    tutorialScreen();
+  }
+  if (gameState === "playing") {
+    play();
+  }
+  if (gameState === "gameOverSelf") {
+    gameOverFromSelf();
+  }
+  if (gameState === "gameOverEnemy") {
+    gameOverFromEnemy();
+  }
+  if (gameState === "winner") {
+    winnerScreen();
+  }
 }
 
 function mousePressed() {
@@ -346,11 +362,30 @@ function winnerScreen() {
   text("YOU WIN", width / 2, height / 2);
 }
 
-function button() {
-  if (buttonClicked) {
-    buttonClicked = false;
-    gameState = "playing";
+function startButtons() {
+  if (gameState === "startScreen") {
+    if (
+      mouseX > width / 2 - BUTTON_WIDTH &&
+      mouseX < width / 2 + BUTTON_WIDTH &&
+      mouseY > height / 2 - BUTTON_HEIGHT &&
+      mouseY < height / 2 + BUTTON_HEIGHT
+    ) {
+      gameState = "playing";
+    }
+    if (
+      mouseX > width / 2 - BUTTON_WIDTH &&
+      mouseX < width / 2 + BUTTON_WIDTH &&
+      mouseY > height / 2 + BUTTON_HEIGHT &&
+      mouseY < height / 2 + 2 * BUTTON_HEIGHT
+    ) {
+      gameState = "tutorial";
+    }
   }
 }
 
-function play() {}
+function play() {
+  background(220);
+  displayGrid();
+  drawPlayer(player.x * cellSize, player.y * cellSize);
+  displayBombs();
+}
