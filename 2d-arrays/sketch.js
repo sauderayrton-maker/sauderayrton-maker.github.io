@@ -5,6 +5,7 @@
 // Extra for Experts:
 // - the gratest animations of all time mixed with a soundtrack that would make a grown kid cry all preloaded ofc textures never seen before to such quality
 // sound effects making realism a understatement and to top it all off the best online support since sliced bread
+// used ai to comment and organize my code before and after were committed
 
 // ── CONSTANTS ─────────────────────────────────────────────
 const cellSize = 50;
@@ -114,14 +115,38 @@ function setup() {
 // ── SCREENS ───────────────────────────────────────────────
 function startScreen() {
   background(0);
+  textAlign(CENTER, CENTER);
+  fill(30);
+  rect(0, 0, width / 2, height);
   fill(255);
   textSize(32);
-  textAlign(CENTER, CENTER);
-  text("BATTLE TANKS", width / 2, height / 2);
+  text("PLAY", width / 4, height / 2);
+  fill(20);
+  rect(width / 2, 0, width / 2, height);
+  fill(255);
+  textSize(32);
+  text("HOW TO PLAY", (width * 3) / 4, height / 2);
 }
 
 function tutorialScreen() {
-  // placeholder
+  background(0);
+  fill(255);
+  textAlign(CENTER, CENTER);
+
+  textSize(32);
+  text("HOW TO PLAY", width / 2, height / 4);
+
+  textSize(18);
+  text("W - move forward", width / 2, height / 2 - 80);
+  text("S - move backward", width / 2, height / 2 - 50);
+  text("A - rotate left", width / 2, height / 2 - 20);
+  text("D - rotate right", width / 2, height / 2 + 10);
+  text("SPACE - drop bomb", width / 2, height / 2 + 40);
+  text("bombs destroy walls in a plus shape", width / 2, height / 2 + 90);
+  text("dont stand on your own bomb!!!", width / 2, height / 2 + 120);
+
+  textSize(22);
+  text("BACK TO TITLE", width / 2, height - 60);
 }
 
 function gameOverFromSelf() {
@@ -151,20 +176,9 @@ function winnerScreen() {
 // ── BUTTONS ───────────────────────────────────────────────
 function startButtons() {
   if (gameState === "startScreen") {
-    if (
-      mouseX > width / 2 - BUTTON_WIDTH &&
-      mouseX < width / 2 + BUTTON_WIDTH &&
-      mouseY > height / 2 - BUTTON_HEIGHT &&
-      mouseY < height / 2 + BUTTON_HEIGHT
-    ) {
+    if (mouseX < width / 2) {
       gameState = "playing";
-    }
-    if (
-      mouseX > width / 2 - BUTTON_WIDTH &&
-      mouseX < width / 2 + BUTTON_WIDTH &&
-      mouseY > height / 2 + BUTTON_HEIGHT &&
-      mouseY < height / 2 + 2 * BUTTON_HEIGHT
-    ) {
+    } else {
       gameState = "tutorial";
     }
   }
@@ -223,6 +237,10 @@ function mousePressed() {
   if (!beat.isPlaying()) {
     beat.loop();
   }
+  if (gameState === "tutorial") {
+    gameState = "startScreen";
+    return;
+  }
   startButtons();
 }
 
@@ -274,16 +292,13 @@ function rotateLeft() {
   if (facingNorth) {
     facingNorth = false;
     facingWest = true;
-  }
-  if (facingWest) {
+  } else if (facingWest) {
     facingWest = false;
     facingSouth = true;
-  }
-  if (facingSouth) {
+  } else if (facingSouth) {
     facingSouth = false;
     facingEast = true;
-  }
-  if (facingEast) {
+  } else if (facingEast) {
     facingEast = false;
     facingNorth = true;
   }
@@ -293,16 +308,13 @@ function rotateRight() {
   if (facingNorth) {
     facingNorth = false;
     facingEast = true;
-  }
-  if (facingEast) {
+  } else if (facingEast) {
     facingEast = false;
     facingSouth = true;
-  }
-  if (facingSouth) {
+  } else if (facingSouth) {
     facingSouth = false;
     facingWest = true;
-  }
-  if (facingWest) {
+  } else if (facingWest) {
     facingWest = false;
     facingNorth = true;
   }
