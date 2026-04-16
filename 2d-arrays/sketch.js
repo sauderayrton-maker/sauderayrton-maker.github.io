@@ -31,6 +31,12 @@ let facingNorth, facingSouth, facingEast, facingWest;
 // ── GAME ──────────────────────────────────────────────────
 let gameState;
 let bombs = [];
+let enemies = [];
+let enemySpawnTimer = 0;
+let enemySpawnInterval = 180;
+let startTime;
+let survivalTime = 0;
+let bestTime = 0;
 
 // ── BOMB CLASS ────────────────────────────────────────────
 class Bomb {
@@ -45,22 +51,46 @@ class Bomb {
 
   explode() {
     this.exploded = true;
-    grid[this.y][this.x] = 0;
+
+    this.blast(this.x, this.y);
+
     for (let i = 1; i <= this.blastRadius; i++) {
       if (this.x + i < cols) {
-        grid[this.y][this.x + i] = 0;
+        if (grid[this.y][this.x + i] === STEEL) break;
+        this.blast(this.x + i, this.y);
       }
       if (this.x - i >= 0) {
-        grid[this.y][this.x - i] = 0;
+        if (grid[this.y][this.x - i] === STEEL) break;
+        this.blast(this.x - i, this.y);
       }
       if (this.y + i < rows) {
-        grid[this.y + i][this.x] = 0;
+        if (grid[this.y + i][this.x] === STEEL) break;
+        this.blast(this.x, this.y + i);
       }
       if (this.y - i >= 0) {
-        grid[this.y - i][this.x] = 0;
+        if (grid[this.y - i][this.x] === STEEL) break;
+        this.blast(this.x, this.y - i);
       }
     }
-    console.log("booom");
+
+    console.log("BOOM");
+  }
+
+  blast(x, y) {
+    if (grid[y][x] === BRICK) {
+      grid[y][x] = GRASS;
+    }
+
+    if (player.x === x && player.y === y) {
+      saveScore();
+      gameState = "gameOverSelf";
+    }
+
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      if (enemies[i].x === x && enemies[i].y === y) {
+        enemies.splice(i, 1);
+      }
+    }
   }
 
   update() {
@@ -73,7 +103,7 @@ class Bomb {
   draw() {
     let cx = this.x * cellSize + cellSize / 2;
     let cy = this.y * cellSize + cellSize / 2;
-    //ai drawn
+
     push();
     translate(cx, cy);
 
@@ -89,6 +119,72 @@ class Bomb {
 
     stroke(150);
     line(0, -this.size * 0.35, 5, -this.size * 0.5);
+
+    pop();
+  }
+}
+
+// ── ENEMY CLASS ───────────────────────────────────────────
+class Enemy {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.moveTimer = 0;
+    this.moveDelay = 30;
+  }
+  update() {
+    this.moveTimer--;
+
+    if (this.moveTimer <= 0) {
+      this.move();
+      this.moveTimer = this.moveDelay;
+    }
+    if (random(100) < 20) {
+      bombs.push(new Bomb(this.x, this.y));
+    }
+  }
+  move() {
+    let direction = floor(random(4));
+    let nextX = this.x;
+    let nextY = this.y;
+
+    if (direction === 0) {
+      nextX--;
+    } else if (direction === 1) {
+      nextX++;
+    } else if (direction === 2) {
+      nextY--;
+    } else if (direction === 3) {
+      nextY++;
+    }
+
+    if (grid[nextY] && grid[nextY][nextX] === GRASS) {
+      this.x = nextX;
+      this.y = nextY;
+    }
+  }
+
+  draw() {
+    let cx = this.x * cellSize + cellSize / 2;
+    let cy = this.y * cellSize + cellSize / 2;
+
+    push();
+    translate(cx, cy);
+
+    // red tank ai drawn
+    fill(120, 20, 20);
+    rect(-20, -18, 40, 10, 3);
+    rect(-20, 8, 40, 10, 3);
+
+    fill(200, 50, 50);
+    rect(-15, -13, 30, 26, 4);
+
+    fill(255, 80, 80);
+    ellipse(0, 0, 22, 22);
+
+    fill(180, 40, 40);
+    rect(0, -4, 25, 8, 2);
+
     pop();
   }
 }
@@ -112,6 +208,8 @@ function setup() {
   spawnInGreen();
   facingWest = true;
   gameState = "startScreen";
+  startTime = millis();
+  bestTime = localStorage.getItem("bestTime") || 0;
 }
 
 // ── SCREENS ───────────────────────────────────────────────
@@ -210,9 +308,23 @@ function draw() {
 
 function play() {
   background(220);
+  survivalTime = floor((millis() - startTime) / 1000);
   displayGrid();
   drawPlayer(player.x * cellSize, player.y * cellSize);
   displayBombs();
+  showEnemies();
+  fill(0);
+  textSize(20);
+  textAlign(LEFT, TOP);
+  text("Time: " + survivalTime, 10, 10);
+  text("Best: " + bestTime, 10, 35);
+}
+
+function saveScore() {
+  if (survivalTime > bestTime) {
+    bestTime = survivalTime;
+    localStorage.setItem("bestTime", bestTime);
+  }
 }
 
 // ── INPUT ─────────────────────────────────────────────────
@@ -422,6 +534,39 @@ function spawnInGreen() {
       player.x = randX;
       player.y = randY;
       spawned = true;
+    }
+  }
+}
+
+// ── ENEMY ─────────────────────────────────────────────────
+function spawnEnemy() {
+  let spawned = false;
+
+  while (spawned === false) {
+    let randX = floor(random(1, cols - 1));
+    let randY = floor(random(1, rows - 1));
+
+    if (grid[randY][randX] === GRASS) {
+      let enemy = new Enemy(randX, randY);
+      enemies.push(enemy);
+      spawned = true;
+    }
+  }
+}
+
+function showEnemies() {
+  enemySpawnTimer++;
+  if (enemySpawnTimer >= enemySpawnInterval) {
+    spawnEnemy();
+    enemySpawnTimer = 0;
+  }
+
+  for (let i = 0; i < enemies.length; i++) {
+    enemies[i].update();
+    enemies[i].draw();
+
+    if (enemies[i].x === player.x && enemies[i].y === player.y) {
+      gameState = "gameOverEnemy";
     }
   }
 }
