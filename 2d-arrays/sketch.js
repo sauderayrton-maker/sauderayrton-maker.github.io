@@ -306,9 +306,51 @@ function displayBombs() {
   for (let i = 0; i < bombs.length; i++) {
     bombs[i].draw();
     if (bombs[i].exploded) {
-      bombs.pop();
+      bombs.splice(i, 1);
+      i--;
     } else {
       bombs[i].update();
     }
   }
 }
+
+function startScreen() {
+  background(0);
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text("BATTLE TANKS", width / 2, height / 2);
+}
+
+function gameOverFromSelf() {
+  background(0);
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text("NOT OPTIMAL STRATEGY", width / 2, height / 2);
+}
+
+function gameOverFromEnemy() {
+  background(0);
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text("MY GRANDMA PLAYS BETTER THAN YOU", width / 2, height / 2);
+}
+
+function winnerScreen() {
+  background(0);
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text("YOU WIN", width / 2, height / 2);
+}
+
+function button() {
+  if (buttonClicked) {
+    buttonClicked = false;
+    gameState = "playing";
+  }
+}
+
+function play() {}
